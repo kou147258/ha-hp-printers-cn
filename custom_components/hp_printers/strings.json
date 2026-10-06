@@ -233,11 +233,11 @@
       },
       "cartridge_pages_printed": {
         "name": "Pages printed",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "cartridge_pages_remaining": {
         "name": "Pages remaining",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "cartridge_part_number": {
         "name": "Part number"
@@ -266,23 +266,23 @@
       },
       "copy_adf_pages": {
         "name": "Pages copied from feeder",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "copy_color_pages": {
         "name": "Color copies",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "copy_flatbed_pages": {
         "name": "Pages copied from glass",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "copy_mono_pages": {
         "name": "Black and white copies",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "copy_total_pages": {
         "name": "Pages copied",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "draft_quality_pages": {
         "name": "Draft quality pages (all media)"
@@ -292,11 +292,11 @@
       },
       "genuine_color_pages": {
         "name": "Color pages on genuine supplies",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "genuine_mono_pages": {
         "name": "Black and white pages on genuine supplies",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "language_pack_version": {
         "name": "Language pack version"
@@ -306,7 +306,7 @@
       },
       "last_event_page": {
         "name": "Last event at page",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "last_job_source": {
         "name": "Last job source"
@@ -317,37 +317,37 @@
       },
       "network_bad_packets": {
         "name": "Bad packets received",
-        "unit_of_measurement": "packets"
+        "unit_of_measurement": "包"
       },
       "network_errors": {
         "name": "Network errors"
       },
       "network_framing_errors": {
         "name": "Framing errors",
-        "unit_of_measurement": "packets"
+        "unit_of_measurement": "包"
       },
       "network_late_collisions": {
         "name": "Late collisions",
-        "unit_of_measurement": "packets"
+        "unit_of_measurement": "包"
       },
       "network_link_mode": {
         "name": "Link mode"
       },
       "network_packets_received": {
         "name": "Packets received",
-        "unit_of_measurement": "packets"
+        "unit_of_measurement": "包"
       },
       "network_packets_transmitted": {
         "name": "Packets transmitted",
-        "unit_of_measurement": "packets"
+        "unit_of_measurement": "包"
       },
       "network_transmit_collisions": {
         "name": "Transmit collisions",
-        "unit_of_measurement": "packets"
+        "unit_of_measurement": "包"
       },
       "network_unsendable_packets": {
         "name": "Unsendable packets",
-        "unit_of_measurement": "packets"
+        "unit_of_measurement": "包"
       },
       "non_hp_flag_count": {
         "name": "Unauthenticated cartridges seen"
@@ -375,80 +375,80 @@
       },
       "printer_color_pages": {
         "name": "Color pages",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "printer_duplex_sheets": {
         "name": "Double-sided sheets",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "printer_installed_at": {
         "name": "Installed"
       },
       "printer_jams": {
         "name": "Paper jams",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "printer_manufactured_at": {
         "name": "Manufactured"
       },
       "printer_mispicks": {
         "name": "Mispicks",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "printer_mono_pages": {
         "name": "Black and white pages",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "printer_simplex_sheets": {
         "name": "Single-sided sheets",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "printer_total_pages": {
         "name": "Pages printed",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scan_job_adf_pages": {
         "name": "Scan job pages from feeder",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scan_job_duplex_sheets": {
         "name": "Double-sided scan job sheets",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scan_job_flatbed_pages": {
         "name": "Scan job pages from glass",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scan_job_pages": {
         "name": "Scan job pages",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scan_to_host_images": {
         "name": "Images sent to host"
       },
       "scanner_adf_images": {
         "name": "Pages scanned from feeder",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scanner_duplex_sheets": {
         "name": "Double-sided sheets scanned",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scanner_flatbed_images": {
         "name": "Pages scanned from glass",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scanner_images": {
         "name": "Pages scanned",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scanner_jams": {
         "name": "Scanner jams",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scanner_mispicks": {
         "name": "Scanner mispicks",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scanner_status": {
         "name": "Scanner status"
@@ -479,7 +479,7 @@
       },
       "active_alert_count": {
         "name": "Active alerts",
-        "unit_of_measurement": "alerts",
+        "unit_of_measurement": "条",
         "description": "Alerts the printer is raising right now. The event log is history; this is the present."
       },
       "active_alert_worst": {
@@ -499,7 +499,7 @@
       },
       "adapter_errors": {
         "name": "Network interface errors",
-        "unit_of_measurement": "errors",
+        "unit_of_measurement": "次",
         "description": "Error counters per network interface. The split is what shows which port is live."
       },
       "internet_diagnostics": {
@@ -511,12 +511,12 @@
       },
       "cartridge_changes": {
         "name": "Cartridges used in this slot",
-        "unit_of_measurement": "cartridges",
+        "unit_of_measurement": "支",
         "description": "How many cartridges this slot has held. The maximum across slots, since they are refilled independently."
       },
       "region_reset_remaining": {
         "name": "Region reset attempts left",
-        "unit_of_measurement": "attempts",
+        "unit_of_measurement": "次",
         "description": "Attempts left under the device's region-reset scheme before it stops allowing them."
       },
       "service_id": {
@@ -536,7 +536,7 @@
       },
       "default_copies": {
         "name": "Default copies",
-        "unit_of_measurement": "copies"
+        "unit_of_measurement": "份"
       },
       "current_media": {
         "name": "Current media"
@@ -549,37 +549,37 @@
       },
       "print_jobs": {
         "name": "Print jobs",
-        "unit_of_measurement": "jobs",
+        "unit_of_measurement": "次",
         "description": "Jobs the print engine has taken. A job can be counted here and still have failed, so this is not the same as pages printed."
       },
       "job_failures": {
         "name": "Jobs failed",
-        "unit_of_measurement": "jobs"
+        "unit_of_measurement": "次"
       },
       "job_successes": {
         "name": "Jobs completed",
-        "unit_of_measurement": "jobs"
+        "unit_of_measurement": "次"
       },
       "job_cancelled": {
         "name": "Jobs cancelled",
-        "unit_of_measurement": "jobs"
+        "unit_of_measurement": "次"
       },
       "job_skipped": {
         "name": "Jobs skipped",
-        "unit_of_measurement": "jobs"
+        "unit_of_measurement": "次"
       },
       "network_printed_pages": {
         "name": "Pages printed over the network",
-        "unit_of_measurement": "pages",
+        "unit_of_measurement": "页",
         "description": "Pages that arrived over the wired network. The split against the wireless figure is what shows which path is actually being used."
       },
       "wireless_printed_pages": {
         "name": "Pages printed over Wi-Fi",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "ews_accesses": {
         "name": "Web interface opens",
-        "unit_of_measurement": "opens"
+        "unit_of_measurement": "次"
       },
       "memory_available": {
         "name": "Free memory",
@@ -592,11 +592,11 @@
       },
       "input_trays": {
         "name": "Input trays",
-        "unit_of_measurement": "trays"
+        "unit_of_measurement": "个"
       },
       "output_bins": {
         "name": "Output bins",
-        "unit_of_measurement": "bins"
+        "unit_of_measurement": "个"
       },
       "country_region": {
         "name": "Country and region"
@@ -610,7 +610,7 @@
       },
       "failed_attempts_remaining": {
         "name": "Sign-in attempts left",
-        "unit_of_measurement": "attempts",
+        "unit_of_measurement": "次",
         "description": "Failed web-interface sign-in attempts left before it locks. This is why a factory-default admin password is worth changing."
       },
       "successful_attempts_remaining": {
