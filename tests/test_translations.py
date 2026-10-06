@@ -48,6 +48,20 @@ TRANSLATED = sorted(p for p in TRANSLATIONS.glob("*.json") if p.stem != "en")
 PLACEHOLDER = re.compile(r"\{(\w+)\}")
 CJK = re.compile(r"[一-鿿]")
 
+# Units split by what they are, because the two halves cost different things.
+#
+# A measurement is written the same way in every language there is, and Home
+# Assistant matches long-term statistics on the string -- so translating one
+# orphans its history and breaks template unit conversion.
+#
+# A count noun is not a unit at all. `pages` and `packets` were invented by this
+# integration; nothing else in Home Assistant uses them, so there is no shared
+# convention to break, and a Chinese interface reading 页 is what the reader
+# asked for. Home Assistant takes the unit from en.json whichever language the
+# interface is in, so these live in every file, including the English one.
+MEASUREMENTS = frozenset({"%", "kB", "mL"})
+COUNT_NOUNS = frozenset({"页", "包", "次", "条", "支", "份", "个"})
+
 
 def _flatten(tree: dict, prefix: str = "") -> dict[str, str]:
     """Return leaf strings keyed by their dotted path."""
@@ -243,17 +257,29 @@ def test_device_names_cover_every_combination_the_code_can_ask_for() -> None:
 
 
 @pytest.mark.parametrize("path", TRANSLATED, ids=lambda p: p.stem)
-def test_the_unit_is_never_translated(path: Path) -> None:
-    """A unit is the same string in every language file, and this holds it.
+def test_every_language_file_declares_the_same_unit(path: Path) -> None:
+    """One unit per entity, whatever the interface language, and this holds it.
 
-    The file already argued this case in
-    ``test_translation_is_not_left_in_english`` -- "a unit is an SI symbol that
-    Home Assistant registers in English and that the recorder matches on" --
-    and then had no test for it, because the check there is about values that
-    *should* be translated. The other half went unasserted, and 51 Chinese
-    units were translated anyway: 页, 包, 次, 个, 毫升, 支, 条, 份.
+    This test has held three different rules at three different times, which is
+    worth writing down so the next change is a decision rather than an accident.
 
-    They are also inert. Home Assistant reads a sensor's unit from
+    It first asserted units were **never** translated. That caught a real
+    defect -- 51 Chinese units in zh-Hans.json that Home Assistant read
+    nowhere -- but the rule was too broad, because it would also have rejected
+    `kB` and `mL`, which are units in the physical sense and must stay as they
+    are.
+
+    It then asserted every file matched en.json's English value, which is what
+    made the UI render "黑白复印页数" beside "13,141 pages": the
+    half-translation commit 630c478 set out to remove.
+
+    It now asserts the files agree, without saying what they agree on. The
+    values are Chinese, by request: `pages` and `packets` are count nouns an
+    integration invented rather than units anybody else uses, and a Chinese
+    interface reading "页" is what the reader wants.
+
+    The invariant that survived all of it is the one worth a test. Home
+    Assistant reads a sensor's unit from
     ``default_language_platform_translations`` -- the *default* language file,
     which is ``en.json`` -- whatever language the interface is in:
 
@@ -271,18 +297,11 @@ def test_the_unit_is_never_translated(path: Path) -> None:
             # Fourth priority: Unit translation
             ... = self.platform_data.default_language_platform_translations.get(...)
 
-    The name is translated; the unit is not. So "页" was read nowhere, and what
-    the user saw beside 黑白复印页数 was always "pages" -- the half-translation
-    commit 630c478 set out to remove, unchanged by translating anything.
-
-    It is also the wrong idea independently of Home Assistant: the unit is what
-    the statistics recorder keys on and what a graph's axis is labelled with, so
-    a unit only this integration uses stops lining up with every other sensor in
-    the system.
-
-    Comparing against en.json rather than against a list of expected values
-    means adding a counter with a new unit cannot need this file edited, and the
-    comparison is the one the runtime actually makes.
+    One file decides the unit for everyone, so the moment the files disagree the
+    unit becomes a function of an unrelated setting. Comparing against en.json
+    rather than against a list of expected values means adding a counter with a
+    new unit cannot need this file edited, and the comparison is the one the
+    runtime actually makes.
     """
     english = _units(json.loads((TRANSLATIONS / "en.json").read_text(encoding="utf-8")))
     translated = _units(json.loads(path.read_text(encoding="utf-8")))
@@ -295,8 +314,51 @@ def test_the_unit_is_never_translated(path: Path) -> None:
         for key, unit in units.items()
         if translated.get(platform, {}).get(key) != unit
     }
-    assert not mismatched, (
-        f"unit translated away from the runtime's value: {mismatched}"
+    assert not mismatched, f"unit differs from the file the runtime reads: {mismatched}"
+
+
+def test_only_count_nouns_are_translated_never_measurements() -> None:
+    """`%`, `kB` and `mL` are units. `页` is a word. The line is that one.
+
+    Held separately from the agreement test so that adding a counter cannot
+    quietly localise a real unit: the agreement test passes on whatever the new
+    value is, and this one is what says no.
+
+    Checked from both directions, because either half alone misses a mistake.
+    "No unit is non-ASCII" would reject the count nouns, which are supposed to
+    be translated; "every unit is one of these seven" would need editing for
+    each new counter and would say nothing about a measurement that stayed
+    English for the wrong reason.
+
+    The cost of getting it wrong is specific rather than aesthetic. `kB` is what
+    the device reports, and a history keyed on `千字节` is a history keyed on a
+    string no other sensor uses -- it stops graphing against anything else in
+    Home Assistant, and template unit conversion quietly stops working.
+    """
+    english = _units(json.loads((TRANSLATIONS / "en.json").read_text(encoding="utf-8")))
+    every = [unit for units in english.values() for unit in units.values()]
+
+    # A measurement is written the same way in every language there is.
+    localised_measurement = sorted(
+        {u for u in every if not u.isascii()}.difference(COUNT_NOUNS)
+    )
+    assert not localised_measurement, (
+        "a unit that measures something has been translated, which breaks the "
+        f"statistics key and unit conversion: {localised_measurement}"
+    )
+
+    # And a symbol has not been invented in English to stand in for a Chinese
+    # word, which is the same mistake pointing the other way.
+    unknown = sorted(set(every).difference(COUNT_NOUNS).difference(MEASUREMENTS))
+    assert not unknown, (
+        f"a unit that is neither a known count noun nor a measurement: {unknown}"
+    )
+
+    # The measurements are actually present, so the set above is not doing all
+    # the work on its own.
+    assert set(MEASUREMENTS).issubset(set(every)), (
+        f"expected measurements missing from en.json: "
+        f"{sorted(set(MEASUREMENTS) - set(every))}"
     )
 
 
