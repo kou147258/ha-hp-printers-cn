@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- THIS DATA SUBJECT TO DISCLAIMER(S)INCLUDED WITH THE PRODUCT OF ORIGIN.-->
+<cccap:ConsumableConfigCap xsi:schemaLocation="http://www.hp.com/schemas/imaging/con/ledm/consumableconfigcap/2007/11/19 ../schemas/ConsumableConfigCap.xsd http://www.hp.com/schemas/imaging/con/dictionaries/1.0/ ../schemas/dd/DataDictionaryMasterLEDM.xsd" xmlns:dd="http://www.hp.com/schemas/imaging/con/dictionaries/1.0/" xmlns:cccap="http://www.hp.com/schemas/imaging/con/ledm/consumableconfigcap/2007/11/19" xmlns:ccdyn="http://www.hp.com/schemas/imaging/con/ledm/consumableconfigdyn/2007/11/19" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dd:Version>
+		<dd:Revision>SVN-IPG-LEDM.290</dd:Revision>
+		<dd:Date>2010-06-02</dd:Date>
+	</dd:Version>
+	<cccap:ProductConsumableInfoCap>
+		<cccap:NumOfUserReplaceableConsumables typeof="dd:Int" max="50" step="1" elementXPath="ccdyn:ConsumableConfigDyn/ccdyn:ProductConsumableInfo/dd:NumOfUserReplaceableConsumables" min="0" access="readOnly"></cccap:NumOfUserReplaceableConsumables>
+		<cccap:NumOfNonUserReplaceableConsumables typeof="dd:Int" max="50" step="1" elementXPath="ccdyn:ConsumableConfigDyn/ccdyn:ProductConsumableInfo/dd:NumOfNonUserReplaceableConsumables" min="0" access="readOnly"></cccap:NumOfNonUserReplaceableConsumables>
+		<cccap:AlignmentModeSupport access="readOnly">
+			<dd:AlignmentMode>semiAutomatic</dd:AlignmentMode>
+		</cccap:AlignmentModeSupport>
+		<cccap:ConsumableSlotDirectionSupport access="readOnly">
+			<dd:ConsumableSlotDirection>leftToRight</dd:ConsumableSlotDirection>
+		</cccap:ConsumableSlotDirectionSupport>
+		<cccap:IK typeof="xs:Integer" max="1000" step="1" elementXPath="ccdyn:ConsumableConfigDyn/ccdyn:ProductConsumableInfo/dd:IK" min="0" access="readOnly"></cccap:IK>
+		<cccap:SingleCartridgeModeSupport access="readOnly">
+			<ccdyn:SingleCartridgeMode>disabled</ccdyn:SingleCartridgeMode>
+			<ccdyn:SingleCartridgeMode>enabled</ccdyn:SingleCartridgeMode>
+		</cccap:SingleCartridgeModeSupport>
+		<cccap:AntiTheftModeSupport access="readWrite">
+			<dd:AntiTheftMode>disabled</dd:AntiTheftMode>
+			<dd:AntiTheftMode>enabled</dd:AntiTheftMode>
+		</cccap:AntiTheftModeSupport>
+		<cccap:RewardsRegistrationStatus>
+			<cccap:OptedIn typeof="xs:boolean" deselected="false" elementXPath="ccdyn:ProductConsumableInfo/ccdyn:RewardsRegistrationStatus/dd:OptedIn" selected="true" access="readWrite"></cccap:OptedIn>
+			<cccap:AutoSendData typeof="xs:boolean" deselected="false" elementXPath="ccdyn:ProductConsumableInfo/ccdyn:RewardsRegistrationStatus/dd:AutoSendData" selected="true" access="readWrite"></cccap:AutoSendData>
+			<cccap:PromptAutoSendData typeof="xs:boolean" deselected="false" elementXPath="ccdyn:ProductConsumableInfo/ccdyn:RewardsRegistrationStatus/dd:PromptAutoSendData" selected="true" access="readWrite"></cccap:PromptAutoSendData>
+		</cccap:RewardsRegistrationStatus>
+	</cccap:ProductConsumableInfoCap>
+	<cccap:ConsumableInfoCap>
+		<cccap:Capacity typeof="xs:integer" max="100" step="1" elementXPath="ccdyn:ConsumableConfigDyn/ccdyn:ConsumableInfo/dd:Capacity" min="0" access="readOnly"></cccap:Capacity>
+		<cccap:ConsumableSubBrandSupport access="readOnly">
+			<cccap:ConsumableSubBrand>generic</cccap:ConsumableSubBrand>
+		</cccap:ConsumableSubBrandSupport>
+		<cccap:ConsumableSegmentClassSupport access="readOnly">
+			<cccap:ConsumableSegmentClass>class0</cccap:ConsumableSegmentClass>
+			<cccap:ConsumableSegmentClass>class1</cccap:ConsumableSegmentClass>
+			<cccap:ConsumableSegmentClass>class2</cccap:ConsumableSegmentClass>
+			<cccap:ConsumableSegmentClass>class3</cccap:ConsumableSegmentClass>
+		</cccap:ConsumableSegmentClassSupport>
+		<cccap:ConsumableAcceptibilityUpgradabilitySupport access="readOnly">
+			<dd:ConsumableAcceptibilityUpgradability>notSupported</dd:ConsumableAcceptibilityUpgradability>
+		</cccap:ConsumableAcceptibilityUpgradabilitySupport>
+		<cccap:ConsumableContentTypeSupport access="readOnly">
+			<dd:ConsumableContentType>markingAgent</dd:ConsumableContentType>
+		</cccap:ConsumableContentTypeSupport>
+		<cccap:ConsumableFamilyName typeof="dd:String" length="23" elementXPath="ccdyn:ConsumableConfigDyn/ccdyn:ConsumableInfo/dd:ConsumableFamilyName" access="readOnly"></cccap:ConsumableFamilyName>
+		<cccap:ConsumableID typeof="dd2:ConsumableID" length="32" elementXPath="ccdyn:ConsumableConfigDyn/ccdyn:ConsumableInfo/dd2:ConsumableID" access="readOnly"></cccap:ConsumableID>
+		<cccap:ConsumableKeyingDescriptorSupport access="readOnly">
+			<dd:ConsumableKeyingDescriptor>smaller</dd:ConsumableKeyingDescriptor>
+			<dd:ConsumableKeyingDescriptor>small</dd:ConsumableKeyingDescriptor>
+			<dd:ConsumableKeyingDescriptor>medium</dd:ConsumableKeyingDescriptor>
+			<dd:ConsumableKeyingDescriptor>large</dd:ConsumableKeyingDescriptor>
+			<dd:ConsumableKeyingDescriptor>large1</dd:ConsumableKeyingDescriptor>
+			<dd:ConsumableKeyingDescriptor>large2</dd:ConsumableKeyingDescriptor>
+			<dd:ConsumableKeyingDescriptor>large3</dd:ConsumableKeyingDescriptor>
+			<dd:ConsumableKeyingDescriptor>large4</dd:ConsumableKeyingDescriptor>
+		</cccap:ConsumableKeyingDescriptorSupport>
+		<cccap:ConsumableLabelCodeSupport access="readOnly">
+			<dd:ConsumableLabelCode>CMY</dd:ConsumableLabelCode>
+			<dd:ConsumableLabelCode>K</dd:ConsumableLabelCode>
+			<dd:ConsumableLabelCode>C</dd:ConsumableLabelCode>
+			<dd:ConsumableLabelCode>M</dd:ConsumableLabelCode>
+			<dd:ConsumableLabelCode>Y</dd:ConsumableLabelCode>
+			<dd:ConsumableLabelCode>K</dd:ConsumableLabelCode>
+		</cccap:ConsumableLabelCodeSupport>
+		<cccap:ConsumableLastUsedDate access="readOnly" step="1" max="2030-01-01" min="2007-08-13" elementXPath="/ccdyn:ConsumableConfigDyn/ccdyn:ConsumableInfo/dd:ConsumableLastUsedDate" typeof="dd:Date"></cccap:ConsumableLastUsedDate>
+		<cccap:ConsumableLevelMessagingStyleSupport access="readOnly">
+			<dd:ConsumableLevelMessagingStyle>dropCount</dd:ConsumableLevelMessagingStyle>
+			<dd:ConsumableLevelMessagingStyle>Eureka</dd:ConsumableLevelMessagingStyle>
+		</cccap:ConsumableLevelMessagingStyleSupport>
+		<cccap:ConsumableLifeStateSupport>
+			<cccap:ConsumableStateSupport access="readOnly">
+				<dd:ConsumableState>ok</dd:ConsumableState>
+				<dd:ConsumableState>missing</dd:ConsumableState>
+				<dd:ConsumableState>shaidFailure</dd:ConsumableState>
+				<dd:ConsumableState>sehoAtInsertion</dd:ConsumableState>
+				<dd:ConsumableState>empty</dd:ConsumableState>
+				<dd:ConsumableState>failed</dd:ConsumableState>
+				<dd:ConsumableState>sharedAddressError</dd:ConsumableState>
+				<dd:ConsumableState>incompatibleConsumable</dd:ConsumableState>
+				<dd:ConsumableState>safeStopMode</dd:ConsumableState>
+				<dd:ConsumableState>unauthorized</dd:ConsumableState>
+				<dd:ConsumableState>inWrongSlot</dd:ConsumableState>
+				<dd:ConsumableState>antiTheftEnabledSupply</dd:ConsumableState>
+				<dd:ConsumableState>trialConsumableRejected</dd:ConsumableState>
+				<dd:ConsumableState>used</dd:ConsumableState>
+				<dd:ConsumableState>upgradableSupply</dd:ConsumableState>
+				<dd:ConsumableState>supplyUpgradeSuccess</dd:ConsumableState>
+				<dd:ConsumableState>supplyUpgradeFailed</dd:ConsumableState>
+				<dd:ConsumableState>nonHP</dd:ConsumableState>
+				<dd:ConsumableState>newGenuineHP</dd:ConsumableState>
+				<dd:ConsumableState>refilledBlack</dd:ConsumableState>
+				<dd:ConsumableState>refilledColor</dd:ConsumableState>
+				<dd:ConsumableState>subscriptionConsumableTemporaryUsageAllowed</dd:ConsumableState>
+				<dd:ConsumableState>consumableForAnotherPrinter</dd:ConsumableState>
+				<dd:ConsumableState>veryLow</dd:ConsumableState>
+				<dd:ConsumableState>low</dd:ConsumableState>
+			</cccap:ConsumableStateSupport>
+			<cccap:MeasuredQuantityStateSupport access="readOnly">
+				<dd:MeasuredQuantityState>ok</dd:MeasuredQuantityState>
+				<dd:MeasuredQuantityState>unknown</dd:MeasuredQuantityState>
+				<dd:MeasuredQuantityState>veryLow</dd:MeasuredQuantityState>
+				<dd:MeasuredQuantityState>low</dd:MeasuredQuantityState>
+			</cccap:MeasuredQuantityStateSupport>
+			<cccap:BrandSupport access="readOnly">
+				<dd:Brand>approvedOEM</dd:Brand>
+				<dd:Brand>HP</dd:Brand>
+				<dd:Brand>nonApprovedOEM</dd:Brand>
+				<dd:Brand>unknown</dd:Brand>
+			</cccap:BrandSupport>
+			<cccap:ConsumableStateActionSupport access="readOnly">
+				<dd:ConsumableStateAction>acknowledge</dd:ConsumableStateAction>
+				<dd:ConsumableStateAction>continue</dd:ConsumableStateAction>
+				<dd:ConsumableStateAction>none</dd:ConsumableStateAction>
+			</cccap:ConsumableStateActionSupport>
+			<cccap:IsRefilledSupport access="readOnly">
+				<dd:IsRefilled>false</dd:IsRefilled>
+				<dd:IsRefilled>true</dd:IsRefilled>
+			</cccap:IsRefilledSupport>
+			<cccap:IsSETUPSupport access="readOnly">
+				<cccap:IsSETUP>false</cccap:IsSETUP>
+				<cccap:IsSETUP>true</cccap:IsSETUP>
+			</cccap:IsSETUPSupport>
+			<cccap:IsTrial typeof="dd:boolean" deselected="false" elementXPath="/ccdyn:ConsumableConfigDyn/ccdyn:ConsumableInfo/dd:ConsumableLifeState/dd:IsTrue" selected="true" access="readOnly"></cccap:IsTrial>
+		</cccap:ConsumableLifeStateSupport>
+		<cccap:ConsumableStateAvailableActionsSupport access="readOnly">
+			<cccap:ConsumableStateSupport access="readOnly">
+				<dd:ConsumableState>used</dd:ConsumableState>
+				<dd:ConsumableState>upgradableSupply</dd:ConsumableState>
+				<dd:ConsumableState>supplyUpgradeSuccess</dd:ConsumableState>
+				<dd:ConsumableState>supplyUpgradeFailed</dd:ConsumableState>
+				<dd:ConsumableState>nonHP</dd:ConsumableState>
+				<dd:ConsumableState>newGenuineHP</dd:ConsumableState>
+				<dd:ConsumableState>refilledBlack</dd:ConsumableState>
+				<dd:ConsumableState>refilledColor</dd:ConsumableState>
+				<dd:ConsumableState>subscriptionConsumableTemporaryUsageAllowed</dd:ConsumableState>
+				<dd:ConsumableState>consumableForAnotherPrinter</dd:ConsumableState>
+				<dd:ConsumableState>veryLow</dd:ConsumableState>
+				<dd:ConsumableState>low</dd:ConsumableState>
+			</cccap:ConsumableStateSupport>
+			<cccap:SupportedActionsSupport access="readOnly">
+				<dd:ConsumableStateAction>acknowledge</dd:ConsumableStateAction>
+				<dd:ConsumableStateAction>continue</dd:ConsumableStateAction>
+				<dd:ConsumableStateAction>none</dd:ConsumableStateAction>
+			</cccap:SupportedActionsSupport>
+			<cccap:DefaultActionSupport access="readOnly">
+				<dd:ConsumableStateAction>acknowledge</dd:ConsumableStateAction>
+				<dd:ConsumableStateAction>continue</dd:ConsumableStateAction>
+				<dd:ConsumableStateAction>none</dd:ConsumableStateAction>
+			</cccap:DefaultActionSupport>
+			<cccap:SelectedActionSupport access="writeOnly">
+				<dd:ConsumableStateAction>acknowledge</dd:ConsumableStateAction>
+				<dd:ConsumableStateAction>continue</dd:ConsumableStateAction>
+				<dd:ConsumableStateAction>none</dd:ConsumableStateAction>
+			</cccap:SelectedActionSupport>
+		</cccap:ConsumableStateAvailableActionsSupport>
+		<cccap:ConsumableLowUseAlgorithmSupport access="readOnly">
+			<ccdyn:ConsumableLowUseAlgorithm>everyday0</ccdyn:ConsumableLowUseAlgorithm>
+			<ccdyn:ConsumableLowUseAlgorithm>everyday1</ccdyn:ConsumableLowUseAlgorithm>
+			<ccdyn:ConsumableLowUseAlgorithm>everyday2</ccdyn:ConsumableLowUseAlgorithm>
+			<ccdyn:ConsumableLowUseAlgorithm>everyday3</ccdyn:ConsumableLowUseAlgorithm>
+		</cccap:ConsumableLowUseAlgorithmSupport>
+		<cccap:ConsumablePercentageLevelRemaining typeof="dd:Percent" max="100" step="1" elementXPath="ccdyn:ConsumableConfigDyn/ccdyn:ConsumableInfo/dd:ConsumablePercentageLevelRemaining" min="0" access="readOnly"></cccap:ConsumablePercentageLevelRemaining>
+		<cccap:ConsumableReplaceabilityTypeSupport access="readOnly">
+			<dd:ConsumableReplaceabilityType>userReplaceable</dd:ConsumableReplaceabilityType>
+		</cccap:ConsumableReplaceabilityTypeSupport>
+		<cccap:ConsumableSelectibilityNumber typeof="dd:String" length="7" elementXPath="ccdyn:ConsumableConfigDyn/ccdyn:ConsumableInfo/dd:ConsumableSelectibilityNumber" access="readOnly"></cccap:ConsumableSelectibilityNumber>
+		<cccap:ConsumableStationSupport access="readOnly">
+			<dd:ConsumableStation>0</dd:ConsumableStation>
+			<dd:ConsumableStation>1</dd:ConsumableStation>
+			<dd:ConsumableStation>2</dd:ConsumableStation>
+			<dd:ConsumableStation>3</dd:ConsumableStation>
+			<dd:ConsumableStation>4</dd:ConsumableStation>
+			<dd:ConsumableStation>5</dd:ConsumableStation>
+		</cccap:ConsumableStationSupport>
+		<cccap:ConsumableTypeEnumSupport access="readOnly">
+			<dd:ConsumableTypeEnum>inkCartridge</dd:ConsumableTypeEnum>
+		</cccap:ConsumableTypeEnumSupport>
+		<cccap:Installation typeof="dd:Date" max="2030-01-01" step="1" elementXPath="ccdyn:ConsumableConfigDyn/ccdyn:ConsumableInfo/dd:Installation/dd:Date" min="2007-08-13"></cccap:Installation>
+		<cccap:ManufacturerCap>
+			<cccap:Name typeof="dd:String" length="16" elementXPath="ccdyn:ConsumableConfigDyn/ccdyn:ConsumableInfo/dd:Manufacturer/dd:Name" access="readOnly"></cccap:Name>
+			<cccap:Date typeof="dd:Date" max="2030-01-01" step="1" elementXPath="dd:Manufacturer/dd:Date" min="2007-08-13" access="readOnly"></cccap:Date>
+		</cccap:ManufacturerCap>
+		<cccap:ProductNumber typeof="xs:string" length="7" elementXPath="ccdyn:ConsumableConfigDyn/ccdyn:ConsumableInfo/dd:ProductNumber" access="readOnly"></cccap:ProductNumber>
+		<cccap:SerialNumber typeof="xs:NMTOKEN" length="13" elementXPath="ccdyn:ConsumableConfigDyn/ccdyn:ConsumableInfo/dd:SerialNumber" access="readOnly"></cccap:SerialNumber>
+		<cccap:RegionalCartridgeCap>
+			<cccap:RegionIdentifier elementXPath="ccdyn:ConsumableConfigDyn/ccdyn:ConsumableInfo/dd:RegionalCartridge/dd:RegionIdentifier" access="readOnly" typeof="dd:Int" min="0" max="31" step="1"></cccap:RegionIdentifier>
+		</cccap:RegionalCartridgeCap>
+		<cccap:ConsumableManufacturingSignature typeof="xs:string" length="385" elementXPath="ccdyn:ConsumableInfo/ccdyn:ConsumableManufacturingSignature" access="readOnly"></cccap:ConsumableManufacturingSignature>
+		<cccap:ConsumableIconSupport access="readOnly">
+			<cccap:ShapeSupport>
+				<dd:Shape>CMYTriDots</dd:Shape>
+				<dd:Shape>SmallCircle</dd:Shape>
+				<dd:Shape>Circle</dd:Shape>
+			</cccap:ShapeSupport>
+			<cccap:RotationSupport>
+				<dd:Rotation>rotateZero</dd:Rotation>
+			</cccap:RotationSupport>
+			<cccap:FillColorSupport>
+				<dd:FillColor>
+					<dd:Red>255</dd:Red>
+					<dd:Green>255</dd:Green>
+					<dd:Blue>255</dd:Blue>
+				</dd:FillColor>
+				<dd:FillColor>
+					<dd:Red>0</dd:Red>
+					<dd:Green>0</dd:Green>
+					<dd:Blue>0</dd:Blue>
+				</dd:FillColor>
+				<dd:FillColor>
+					<dd:Red>0</dd:Red>
+					<dd:Green>255</dd:Green>
+					<dd:Blue>255</dd:Blue>
+				</dd:FillColor>
+				<dd:FillColor>
+					<dd:Red>255</dd:Red>
+					<dd:Green>0</dd:Green>
+					<dd:Blue>255</dd:Blue>
+				</dd:FillColor>
+				<dd:FillColor>
+					<dd:Red>255</dd:Red>
+					<dd:Green>255</dd:Green>
+					<dd:Blue>0</dd:Blue>
+				</dd:FillColor>
+			</cccap:FillColorSupport>
+			<cccap:OutlineColorSupport>
+				<dd:OutlineColor>
+					<dd:Red>255</dd:Red>
+					<dd:Green>255</dd:Green>
+					<dd:Blue>255</dd:Blue>
+				</dd:OutlineColor>
+				<dd:OutlineColor>
+					<dd:Red>0</dd:Red>
+					<dd:Green>0</dd:Green>
+					<dd:Blue>0</dd:Blue>
+				</dd:OutlineColor>
+				<dd:OutlineColor>
+					<dd:Red>0</dd:Red>
+					<dd:Green>255</dd:Green>
+					<dd:Blue>255</dd:Blue>
+				</dd:OutlineColor>
+				<dd:OutlineColor>
+					<dd:Red>255</dd:Red>
+					<dd:Green>0</dd:Green>
+					<dd:Blue>255</dd:Blue>
+				</dd:OutlineColor>
+				<dd:OutlineColor>
+					<dd:Red>255</dd:Red>
+					<dd:Green>255</dd:Green>
+					<dd:Blue>0</dd:Blue>
+				</dd:OutlineColor>
+			</cccap:OutlineColorSupport>
+			<cccap:BackGroundColorSupport>
+				<dd:BackGroundColor>
+					<dd:Red>255</dd:Red>
+					<dd:Green>255</dd:Green>
+					<dd:Blue>255</dd:Blue>
+				</dd:BackGroundColor>
+			</cccap:BackGroundColorSupport>
+			<cccap:RGBTextColorSupport>
+				<dd:RGBTextColor>
+					<dd:Red>0</dd:Red>
+					<dd:Green>0</dd:Green>
+					<dd:Blue>0</dd:Blue>
+				</dd:RGBTextColor>
+				<dd:RGBTextColor>
+					<dd:Red>255</dd:Red>
+					<dd:Green>255</dd:Green>
+					<dd:Blue>255</dd:Blue>
+				</dd:RGBTextColor>
+			</cccap:RGBTextColorSupport>
+			<cccap:LabelSupport>
+				<cccap:Label>CMY</cccap:Label>
+				<cccap:Label>K</cccap:Label>
+				<cccap:Label>C</cccap:Label>
+				<cccap:Label>M</cccap:Label>
+				<cccap:Label>Y</cccap:Label>
+			</cccap:LabelSupport>
+		</cccap:ConsumableIconSupport>
+		<cccap:SupportMessageSupport access="readOnly">
+			<cccap:SupportMessageTypeSupport access="readOnly">
+				<dd:SupportMessageType>limitedInAvailability</dd:SupportMessageType>
+				<dd:SupportMessageType>selectabilityNumberChange</dd:SupportMessageType>
+				<dd:SupportMessageType>serviceMessageA</dd:SupportMessageType>
+				<dd:SupportMessageType>serviceMessageB</dd:SupportMessageType>
+				<dd:SupportMessageType>serviceMessageC</dd:SupportMessageType>
+				<dd:SupportMessageType>serviceMessageD</dd:SupportMessageType>
+			</cccap:SupportMessageTypeSupport>
+			<cccap:Value typeof="dd:Int" access="readOnly" elementXPath="ccdyn:ConsumableConfigDyn/ccdyn:ConsumableInfo/dd:SupportMessage/dd:Value" max="5000" min="0" step="1"></cccap:Value>
+			<cccap:ActionSupport access="readOnly">
+				<dd:ConsumableStateAction>acknowledge</dd:ConsumableStateAction>
+				<dd:ConsumableStateAction>none</dd:ConsumableStateAction>
+			</cccap:ActionSupport>
+		</cccap:SupportMessageSupport>
+		<cccap:SupportMessageAvailableActionsSupport>
+			<cccap:SupportMessageTypeSupport access="readOnly">
+				<dd:SupportMessageType>limitedInAvailability</dd:SupportMessageType>
+				<dd:SupportMessageType>selectabilityNumberChange</dd:SupportMessageType>
+				<dd:SupportMessageType>serviceMessageA</dd:SupportMessageType>
+				<dd:SupportMessageType>serviceMessageB</dd:SupportMessageType>
+				<dd:SupportMessageType>serviceMessageC</dd:SupportMessageType>
+				<dd:SupportMessageType>serviceMessageD</dd:SupportMessageType>
+			</cccap:SupportMessageTypeSupport>
+			<cccap:SupportedActionsSupport access="readOnly">
+				<dd:ConsumableStateAction>acknowledge</dd:ConsumableStateAction>
+				<dd:ConsumableStateAction>none</dd:ConsumableStateAction>
+			</cccap:SupportedActionsSupport>
+			<cccap:DefaultActionSupport access="readOnly">
+				<dd:ConsumableStateAction>acknowledge</dd:ConsumableStateAction>
+				<dd:ConsumableStateAction>none</dd:ConsumableStateAction>
+			</cccap:DefaultActionSupport>
+			<cccap:SelectedActionSupport access="writeOnly">
+				<dd:ConsumableStateAction>acknowledge</dd:ConsumableStateAction>
+				<dd:ConsumableStateAction>none</dd:ConsumableStateAction>
+			</cccap:SelectedActionSupport>
+		</cccap:SupportMessageAvailableActionsSupport>
+		<cccap:WarrantySupport>
+			<cccap:ExpirationDate typeof="dd:Date" elementXPath="ccdyn:ConsumableConfigDyn/ccdyn:ConsumableInfo/dd:Warranty/dd:ExpirationDate" length="25" access="readOnly"></cccap:ExpirationDate>
+		</cccap:WarrantySupport>
+		<cccap:ConsumableUniqueID typeof="xs:hexBinary" length="32" elementXPath="ccdyn:ConsumableInfo/ccdyn:ConsumableUniqueID" access="readOnly"></cccap:ConsumableUniqueID>
+		<cccap:ConsumableRawData typeof="xs:hexBinary" length="256" elementXPath="ccdyn:ConsumableInfo/ccdyn:ConsumableRawData" access="readOnly"></cccap:ConsumableRawData>
+		<cccap:CISS typeof="xs:boolean" deselected="false" elementXPath="ccdyn:ConsumableInfo/ccdyn:CISS" selected="true" access="readOnly"></cccap:CISS>
+		<cccap:BrandDisplayString typeof="dd:String" length="32" elementXPath="ccdyn:ConsumableInfo/ccdyn:BrandDisplayString" access="readOnly"></cccap:BrandDisplayString>
+		<cccap:SupplyModelTypeSupport access="readOnly">
+			<cccap:SupplyModelType>unknown</cccap:SupplyModelType>
+			<cccap:SupplyModelType>starter</cccap:SupplyModelType>
+			<cccap:SupplyModelType>trade</cccap:SupplyModelType>
+			<cccap:SupplyModelType>other</cccap:SupplyModelType>
+		</cccap:SupplyModelTypeSupport>
+	</cccap:ConsumableInfoCap>
+</cccap:ConsumableConfigCap>
