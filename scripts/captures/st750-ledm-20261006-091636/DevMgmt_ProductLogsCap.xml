@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--THIS DATA SUBJECT TO DISCLAIMER(S) INCLUDED WITH THE PRODUCT OF ORIGIN.-->
+<plcap:ProductLogsCap xsi:schemaLocation="http://www.hp.com/schemas/imaging/con/ledm/productlogscap/2008/01/16 ../schemas/ProductLogsCap.xsd" xmlns:dd="http://www.hp.com/schemas/imaging/con/dictionaries/1.0/" xmlns:plcap="http://www.hp.com/schemas/imaging/con/ledm/productlogscap/2008/01/16" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dd:Version>
+		<dd:Revision>SVN-IPG-LEDM.29</dd:Revision>
+		<dd:Date>2010-05-13</dd:Date>
+	</dd:Version>
+	<plcap:EventLogCap>
+		<plcap:EventLogMaxSize>15</plcap:EventLogMaxSize>
+		<plcap:SequenceNumber elementXPath="pldyn:EventLog/pldyn:Event/dd:SequenceNumber" typeof="dd:Integer" min="0" max="10" step="1"></plcap:SequenceNumber>
+		<plcap:EventOccurrences elementXPath="pldyn:EventLog/pldyn:Event/dd:EventOccurrences" typeof="dd:Integer" min="0" max="10" step="1"></plcap:EventOccurrences>
+		<plcap:EventCode elementXPath="pldyn:ProductLogsDyn/pldyn:EventLog/pldyn:Event/dd:EventCode" typeof="dd:String" length="9"></plcap:EventCode>
+		<plcap:EventDetail elementXPath="pldyn:ProductLogsDyn/pldyn:EventLog/pldyn:Event/dd:EventDetail" typeof="dd:String" length="255"></plcap:EventDetail>
+	</plcap:EventLogCap>
+	<plcap:ErrorLogCap elementXPath="pldyn:ErrorLog" typeof="dd:String" length="1000" access="readOnly"></plcap:ErrorLogCap>
+</plcap:ProductLogsCap>
