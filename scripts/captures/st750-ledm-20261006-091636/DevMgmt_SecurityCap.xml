@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<seccap:SecurityCap
+    xsi:schemaLocation="http://www.hp.com/schemas/imaging/con/ledm/securitycap/2008/02/01 ../schemas/SecurityCap.xsd"
+    xmlns:dd="http://www.hp.com/schemas/imaging/con/dictionaries/1.0/"
+    xmlns:seccap="http://www.hp.com/schemas/imaging/con/ledm/securitycap/2008/02/01"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <dd:Version>
+    <dd:Revision>SVN-IPG-LEDM.1142</dd:Revision>
+    <dd:Date>2017-02-07</dd:Date>
+  </dd:Version>
+  <seccap:Password typeof="String" length="16" access="writeOnly" elementXPath="secdyn:SecurityDyn/secdyn:Password"/>
+  <seccap:PasswordEncodingSupport access="readOnly">
+    <seccap:Encoding>base64</seccap:Encoding>
+  </seccap:PasswordEncodingSupport>
+  <seccap:EncryptionStrengthSupport access="readOnly">
+    <seccap:EncryptionStrength>high</seccap:EncryptionStrength>
+    <seccap:EncryptionStrength>medium</seccap:EncryptionStrength>
+    <seccap:EncryptionStrength>low</seccap:EncryptionStrength>
+  </seccap:EncryptionStrengthSupport>
+  <seccap:CipherSuiteSupport>
+    <seccap:SslTlsLow>
+    </seccap:SslTlsLow>
+    <seccap:SslTlsMedium>
+    </seccap:SslTlsMedium>
+    <seccap:SslTlsHigh>
+      <seccap:Name>DHE-RSA-AES256-GCM-SHA384</seccap:Name>
+      <seccap:Name>DHE-RSA-AES256-SHA256</seccap:Name>
+      <seccap:Name>DHE-RSA-AES256-SHA</seccap:Name>
+      <seccap:Name>AES256-GCM-SHA384</seccap:Name>
+      <seccap:Name>AES256-SHA256</seccap:Name>
+      <seccap:Name>AES256-SHA</seccap:Name>
+      <seccap:Name>DHE-RSA-AES128-GCM-SHA256</seccap:Name>
+      <seccap:Name>DHE-RSA-AES128-SHA256</seccap:Name>
+      <seccap:Name>DHE-RSA-AES128-SHA</seccap:Name>
+      <seccap:Name>AES128-GCM-SHA256</seccap:Name>
+      <seccap:Name>AES128-SHA256</seccap:Name>
+      <seccap:Name>AES128-SHA</seccap:Name>
+      <seccap:Name>ECDHE-RSA-AES256-GCM-SHA384</seccap:Name>
+      <seccap:Name>ECDHE-RSA-AES256-SHA384</seccap:Name>
+      <seccap:Name>ECDHE-RSA-AES256-SHA</seccap:Name>
+      <seccap:Name>ECDHE-RSA-AES128-GCM-SHA256</seccap:Name>
+      <seccap:Name>ECDHE-RSA-AES128-SHA256</seccap:Name>
+      <seccap:Name>ECDHE-RSA-AES128-SHA</seccap:Name>
+    </seccap:SslTlsHigh>
+  </seccap:CipherSuiteSupport>
+    <seccap:AdminLockoutPolicySupport>
+    <seccap:LockoutOptionSupport access="readWrite" elementXPath="/secdyn:SecurityDyn/secdyn:AdminLockoutPolicy/secdyn:LockoutOption">
+      <seccap:LockoutOption>enabled</seccap:LockoutOption>
+      <seccap:LockoutOption>disabled</seccap:LockoutOption>
+    </seccap:LockoutOptionSupport>
+    <seccap:MaximumAttempts typeof="dd:Int" step="1" access="readWrite" elementXPath="/secdyn:SecurityDyn/secdyn:AdminLockoutPolicy/secdyn:MaximumAttempts" min="3" max="30"/>
+    <seccap:LockoutInterval typeof="dd:Int" step="1" access="readWrite" elementXPath="/secdyn:SecurityDyn/secdyn:AdminLockoutPolicy/secdyn:LockoutInterval" min="5" max="1800"/>
+    <seccap:ResetAfterInterval typeof="dd:Int" step="1" access="readWrite" elementXPath="/secdyn:SecurityDyn/secdyn:AdminLockoutPolicy/secdyn:ResetAfterInterval" min="0" max="1800"/>
+  </seccap:AdminLockoutPolicySupport>
+  <seccap:SecurityFeaturesSupport access="readOnly">
+    <seccap:SecureBoot>enabled</seccap:SecureBoot>
+    <seccap:Whitelisting>enabled</seccap:Whitelisting>
+  </seccap:SecurityFeaturesSupport>
+  <seccap:CsrfDefenseSupport access="readOnly">enabled</seccap:CsrfDefenseSupport>
+</seccap:SecurityCap>
