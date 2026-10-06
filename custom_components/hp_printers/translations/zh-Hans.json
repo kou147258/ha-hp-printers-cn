@@ -233,11 +233,11 @@
       },
       "cartridge_pages_printed": {
         "name": "已打印页数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "cartridge_pages_remaining": {
         "name": "剩余页数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "cartridge_part_number": {
         "name": "料号"
@@ -266,23 +266,23 @@
       },
       "copy_adf_pages": {
         "name": "自动进稿器复印页数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "copy_color_pages": {
         "name": "彩色复印页数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "copy_flatbed_pages": {
         "name": "平板复印页数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "copy_mono_pages": {
         "name": "黑白复印页数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "copy_total_pages": {
         "name": "已复印页数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "draft_quality_pages": {
         "name": "草稿质量页数（全纸材合计）"
@@ -292,11 +292,11 @@
       },
       "genuine_color_pages": {
         "name": "正版耗材彩色页数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "genuine_mono_pages": {
         "name": "正版耗材黑白页数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "language_pack_version": {
         "name": "语言包版本"
@@ -306,7 +306,7 @@
       },
       "last_event_page": {
         "name": "最近事件所在页",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "last_job_source": {
         "name": "最近作业来源"
@@ -317,37 +317,37 @@
       },
       "network_bad_packets": {
         "name": "收到的错误包数",
-        "unit_of_measurement": "packets"
+        "unit_of_measurement": "包"
       },
       "network_errors": {
         "name": "网络错误数"
       },
       "network_framing_errors": {
         "name": "帧错误数",
-        "unit_of_measurement": "packets"
+        "unit_of_measurement": "包"
       },
       "network_late_collisions": {
         "name": "延迟冲突数",
-        "unit_of_measurement": "packets"
+        "unit_of_measurement": "包"
       },
       "network_link_mode": {
         "name": "链路模式"
       },
       "network_packets_received": {
         "name": "收到的包数",
-        "unit_of_measurement": "packets"
+        "unit_of_measurement": "包"
       },
       "network_packets_transmitted": {
         "name": "发出的包数",
-        "unit_of_measurement": "packets"
+        "unit_of_measurement": "包"
       },
       "network_transmit_collisions": {
         "name": "发送冲突数",
-        "unit_of_measurement": "packets"
+        "unit_of_measurement": "包"
       },
       "network_unsendable_packets": {
         "name": "无法发送的包数",
-        "unit_of_measurement": "packets"
+        "unit_of_measurement": "包"
       },
       "non_hp_flag_count": {
         "name": "未认证墨盒出现次数"
@@ -375,80 +375,80 @@
       },
       "printer_color_pages": {
         "name": "彩色页数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "printer_duplex_sheets": {
         "name": "双面打印张数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "printer_installed_at": {
         "name": "装机日期"
       },
       "printer_jams": {
         "name": "卡纸次数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "printer_manufactured_at": {
         "name": "生产日期"
       },
       "printer_mispicks": {
         "name": "错误进纸次数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "printer_mono_pages": {
         "name": "黑白页数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "printer_simplex_sheets": {
         "name": "单面打印张数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "printer_total_pages": {
         "name": "已打印页数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scan_job_adf_pages": {
         "name": "自动进稿器扫描任务页数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scan_job_duplex_sheets": {
         "name": "双面扫描任务张数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scan_job_flatbed_pages": {
         "name": "平板扫描任务页数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scan_job_pages": {
         "name": "扫描任务页数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scan_to_host_images": {
         "name": "扫描到主机图像数"
       },
       "scanner_adf_images": {
         "name": "自动进稿器扫描页数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scanner_duplex_sheets": {
         "name": "双面扫描张数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scanner_flatbed_images": {
         "name": "平板扫描页数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scanner_images": {
         "name": "已扫描页数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scanner_jams": {
         "name": "扫描仪卡纸次数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scanner_mispicks": {
         "name": "扫描仪错误进纸次数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "scanner_status": {
         "name": "扫描仪状态"
@@ -479,7 +479,7 @@
       },
       "active_alert_count": {
         "name": "当前告警数",
-        "unit_of_measurement": "alerts",
+        "unit_of_measurement": "条",
         "description": "打印机当前正在报的告警。事件日志是历史，这个是当下。"
       },
       "active_alert_worst": {
@@ -499,7 +499,7 @@
       },
       "adapter_errors": {
         "name": "网络接口错误计数",
-        "unit_of_measurement": "errors",
+        "unit_of_measurement": "次",
         "description": "按网络接口分别统计的错误计数。分开看才知道哪个口是活的。"
       },
       "internet_diagnostics": {
@@ -511,12 +511,12 @@
       },
       "cartridge_changes": {
         "name": "该仓位已用墨盒数",
-        "unit_of_measurement": "cartridges",
+        "unit_of_measurement": "支",
         "description": "这个仓位一共装过几支墨盒。取各仓位最大值，因为它们各自独立更换。"
       },
       "region_reset_remaining": {
         "name": "区域重置剩余次数",
-        "unit_of_measurement": "attempts",
+        "unit_of_measurement": "次",
         "description": "按设备区域重置方案，在它不再允许之前还剩几次机会。"
       },
       "service_id": {
@@ -536,7 +536,7 @@
       },
       "default_copies": {
         "name": "默认份数",
-        "unit_of_measurement": "copies"
+        "unit_of_measurement": "份"
       },
       "current_media": {
         "name": "当前纸张"
@@ -549,37 +549,37 @@
       },
       "print_jobs": {
         "name": "打印作业数",
-        "unit_of_measurement": "jobs",
+        "unit_of_measurement": "次",
         "description": "打印引擎接过的作业数。作业被计数不等于打印成功，所以它和「已打印页数」不是一回事。"
       },
       "job_failures": {
         "name": "失败的作业",
-        "unit_of_measurement": "jobs"
+        "unit_of_measurement": "次"
       },
       "job_successes": {
         "name": "完成的作业",
-        "unit_of_measurement": "jobs"
+        "unit_of_measurement": "次"
       },
       "job_cancelled": {
         "name": "取消的作业",
-        "unit_of_measurement": "jobs"
+        "unit_of_measurement": "次"
       },
       "job_skipped": {
         "name": "跳过的作业",
-        "unit_of_measurement": "jobs"
+        "unit_of_measurement": "次"
       },
       "network_printed_pages": {
         "name": "网络打印页数",
-        "unit_of_measurement": "pages",
+        "unit_of_measurement": "页",
         "description": "走有线网络送来的页数。和无线那个一对比，才知道实际在用哪条路。"
       },
       "wireless_printed_pages": {
         "name": "无线打印页数",
-        "unit_of_measurement": "pages"
+        "unit_of_measurement": "页"
       },
       "ews_accesses": {
         "name": "网页界面打开次数",
-        "unit_of_measurement": "opens"
+        "unit_of_measurement": "次"
       },
       "memory_available": {
         "name": "可用内存",
@@ -592,11 +592,11 @@
       },
       "input_trays": {
         "name": "进纸器数量",
-        "unit_of_measurement": "trays"
+        "unit_of_measurement": "个"
       },
       "output_bins": {
         "name": "出纸盒数量",
-        "unit_of_measurement": "bins"
+        "unit_of_measurement": "个"
       },
       "country_region": {
         "name": "国家 / 地区"
@@ -610,7 +610,7 @@
       },
       "failed_attempts_remaining": {
         "name": "剩余登录尝试次数",
-        "unit_of_measurement": "attempts",
+        "unit_of_measurement": "次",
         "description": "网页界面在锁定前还剩几次登录失败机会。出厂默认密码值得改，就是因为这个。"
       },
       "successful_attempts_remaining": {
