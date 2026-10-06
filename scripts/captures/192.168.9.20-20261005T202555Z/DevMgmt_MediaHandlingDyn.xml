@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+                               <!-- THIS DATA SUBJECT TO DISCLAIMER(S) INCLUDED WITH THE PRODUCT OF ORIGIN. --> 
+<mhdyn:MediaHandlingDyn xmlns:dd="http://www.hp.com/schemas/imaging/con/dictionaries/1.0/" xmlns:mhdyn="http://www.hp.com/schemas/imaging/con/ledm/mediahandlingdyn/2007/11/21" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.hp.com/schemas/imaging/con/ledm/mediahandlingdyn/2007/11/21 ../schemas/MediaHandlingDyn.xsd">
+	<dd:Version>
+		<dd:Revision>SVN-IPG-LEDM.29</dd:Revision>
+		<dd:Date>2010-05-13</dd:Date>
+	</dd:Version>
+	<mhdyn:MediaHandlingInfo>
+		<dd:NumOfInputTrays>1</dd:NumOfInputTrays>
+		<dd:NumOfOutputBins>1</dd:NumOfOutputBins>
+		<dd:DefaultInputTray>Tray1</dd:DefaultInputTray>
+		<dd:DefaultOutputBin>OutputBin1</dd:DefaultOutputBin>
+		<dd:MediaOutActionType>waitForPaperToBeLoaded</dd:MediaOutActionType>
+	</mhdyn:MediaHandlingInfo>
+	<mhdyn:InputTray>
+		<dd:InputBin>Tray1</dd:InputBin>
+		<dd:TrayLock>off</dd:TrayLock>
+		<dd:InputTrayLocation>bottom</dd:InputTrayLocation>
+		<dd:TrayType>genericMedia</dd:TrayType>
+		<dd:ComponentOrigin>builtIn</dd:ComponentOrigin>
+		<dd:PageOrientation>FaceDown</dd:PageOrientation>
+		<dd:TrayState>installed</dd:TrayState>
+		<dd:FeederType>auto</dd:FeederType>
+		<dd:Plex>Duplex</dd:Plex>
+		<dd:MediaType>lightWeight</dd:MediaType>
+		<dd:MediaSizeName>iso_a4_210x297mm</dd:MediaSizeName>
+		<mhdyn:MediaSettingsBySizeCategory>
+			<mhdyn:MediaSettingBySizeCategory>
+				<mhdyn:MediaSizeCategory>small</mhdyn:MediaSizeCategory>
+				<mhdyn:MediaSizeName>om_small-photo_100x150mm</mhdyn:MediaSizeName>
+				<mhdyn:MediaType>photoStandard</mhdyn:MediaType>
+			</mhdyn:MediaSettingBySizeCategory>
+			<mhdyn:MediaSettingBySizeCategory>
+				<mhdyn:MediaSizeCategory>medium</mhdyn:MediaSizeCategory>
+				<mhdyn:MediaSizeName>om_medium___photo_130x180mm</mhdyn:MediaSizeName>
+				<mhdyn:MediaType>photoStandard</mhdyn:MediaType>
+			</mhdyn:MediaSettingBySizeCategory>
+			<mhdyn:MediaSettingBySizeCategory>
+				<mhdyn:MediaSizeCategory>large</mhdyn:MediaSizeCategory>
+				<mhdyn:MediaSizeName>iso_a4_210x297mm</mhdyn:MediaSizeName>
+				<mhdyn:MediaType>lightWeight</mhdyn:MediaType>
+			</mhdyn:MediaSettingBySizeCategory>
+		</mhdyn:MediaSettingsBySizeCategory>
+		<mhdyn:MediaState>present</mhdyn:MediaState>
+	</mhdyn:InputTray>
+	<mhdyn:OutputBin>
+		<dd:HPOutputBin>OutputBin1</dd:HPOutputBin>
+		<dd:MediaHandlingDeviceFunctionType>stack</dd:MediaHandlingDeviceFunctionType>
+	</mhdyn:OutputBin>
+	<mhdyn:Accessories>
+		<dd:MediaHandlingDeviceFunctionType>autoDuplexor</dd:MediaHandlingDeviceFunctionType>
+	</mhdyn:Accessories>
+	<mhdyn:Accessories>
+		<dd:MediaHandlingDeviceFunctionType>adf</dd:MediaHandlingDeviceFunctionType>
+	</mhdyn:Accessories>
+</mhdyn:MediaHandlingDyn>
