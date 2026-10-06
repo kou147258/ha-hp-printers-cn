@@ -1,6 +1,0 @@
-{
-  "version": "1.0.0",
-  "sleepTimeout": 5,
-  "shutdownPrevention": "whenPortsAreActive",
-  "autoShutdownEnabled": "false"
-}
