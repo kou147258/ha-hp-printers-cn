@@ -75,6 +75,52 @@ def _flatten(tree: dict, prefix: str = "") -> dict[str, str]:
     return flat
 
 
+# Keys an entity translation entry may carry, from script/hassfest/translations.py
+# in home-assistant/core. Anything else is rejected by hassfest -- which is what
+# a `description` did, for 32 entities, on every push since it was added.
+#
+# The rejection is the small half. The larger half is that an entity translation
+# has no slot for prose at all, so those descriptions were never rendered by
+# anyone: correct-looking, unreachable. The same shape as the Chinese units, one
+# field over.
+ENTITY_TRANSLATION_KEYS = frozenset(
+    {"name", "state", "state_attributes", "unit_of_measurement"}
+)
+
+
+@pytest.mark.parametrize("path", [*TRANSLATED, STRINGS], ids=lambda p: p.name)
+def test_entity_translations_only_use_keys_home_assistant_has_a_slot_for(
+    path: Path,
+) -> None:
+    """Every key an entity translation uses is one the schema knows.
+
+    Read against the schema rather than a list of keys this project has used,
+    so a key that Home Assistant drops support for, or one that was never
+    supported, is caught by the same test.
+
+    hassfest fails the build on an unknown key, so this is partly about getting
+    a red CI to go green. It is mostly about the half hassfest cannot check:
+    a key the schema does not know about is not merely unrendered, it is
+    invisible. The README is where this project's explanations live, because
+    that is a place a reader looks.
+    """
+    document = json.loads(path.read_text(encoding="utf-8"))
+    offenders = {
+        f"{platform}.{key}.{field}"
+        for platform, entries in document.get("entity", {}).items()
+        if isinstance(entries, dict)
+        for key, value in entries.items()
+        if isinstance(value, dict)
+        for field in value
+        if field not in ENTITY_TRANSLATION_KEYS
+    }
+
+    assert not offenders, (
+        f"keys Home Assistant has no slot for, so they render nowhere: "
+        f"{sorted(offenders)}"
+    )
+
+
 def test_every_button_key_has_a_name() -> None:
     """A button whose translation_key has no name renders as "None".
 
