@@ -65,25 +65,33 @@ jobs:
           # Consider tags as well as releases. Deleting a release leaves its
           # tag behind, and reusing that number would attach the new release
           # to the old tag's commit rather than this one.
+          #
+          # Both `2026.10.6` and `v2026.10.6` are counted. The prefix is not
+          # cosmetic: this workflow publishes the bare version, while the
+          # first calendar release was tagged by hand as `v2026.10.5`, and a
+          # counter that only looks at one of the two starts from zero and
+          # publishes a number *below* what users already have.
           highest=$(
             {
               gh release list --limit 100 --json tagName --jq '.[].tagName'
+              git tag --list "${month}.*"
               git tag --list "v${month}.*"
             } \
-              | grep "^v${month}\." \
-              | sed "s/^v${month}\.//" \
+              | sed "s/^v//" \
+              | grep "^${month}\." \
+              | sed "s/^${month}\.//" \
               | grep -E '^[0-9]+$' \
               | sort -n | tail -1
           )
           next=$(( ${highest:--1} + 1 ))
           version="${month}.${next}"
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "Next version: $version"
+          echo "Highest this month: ${highest:-none}; next version: $version"
 
       - name: Refuse to reuse an existing tag
         if: steps.changed.outputs.release == 'true'
         env:
-          TAG: v${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.version }}
         run: |
           if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
             echo "::error::$TAG already exists as a tag. Computing it again"\
@@ -147,11 +155,11 @@ jobs:
             echo
             if [ -n "$last" ]; then
               echo
-              echo "**Full changelog**: https://github.com/${GITHUB_REPOSITORY}/compare/${last}...v${VERSION}"
+              echo "**Full changelog**: https://github.com/${GITHUB_REPOSITORY}/compare/${last}...${VERSION}"
             fi
           } > /tmp/release-notes.md
           cat /tmp/release-notes.md
-          gh release create "v$VERSION" \
+          gh release create "$VERSION" \
             --target "$(git rev-parse HEAD)" \
-            --title "v$VERSION" \
+            --title "$VERSION" \
             --notes-file /tmp/release-notes.md
