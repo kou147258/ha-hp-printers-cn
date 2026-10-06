@@ -89,11 +89,20 @@ PROCESSING = {
 
 
 def _patch_context(
-    raises: BaseException | None = None, status: int = 204, body: str = ""
+    raises: BaseException | None = None,
+    status: int = 204,
+    body: str = "",
+    allow: str | None = None,
+    content_type: str | None = None,
 ) -> MagicMock:
     response = MagicMock()
     response.status = status
     response.text = AsyncMock(return_value=body)
+    response.headers = {}
+    if allow is not None:
+        response.headers["Allow"] = allow
+    if content_type is not None:
+        response.headers["Content-Type"] = content_type
 
     context = MagicMock()
     if raises is not None:
@@ -326,6 +335,94 @@ async def test_a_dropped_connection_says_the_job_may_still_be_running() -> None:
 
 
 # ------------------------------------------------------ request shape
+
+
+async def test_a_405_names_the_method_and_what_the_device_allows() -> None:
+    """A 405 is answered in a header, so the message has to carry the header.
+
+    On this device a 405 arrives with ``Allow: GET, PATCH`` and an empty body.
+    The generic handler renders that as "HTTP 405, no detail given" -- and the
+    one thing that makes a 405 actionable, which is that the request arrived
+    with a method the resource does not take, is exactly what gets thrown
+    away.
+
+    It matters here because the shipped client only ever sends PATCH, so a 405
+    on this endpoint is evidence that something other than this code made the
+    request. Saying so is more useful than restating the status code: it turns
+    "the integration is broken" into "Home Assistant is not running this
+    build", which is a different thing to go and check.
+    """
+    session = MagicMock()
+    session.patch = MagicMock(
+        return_value=_patch_context(status=405, body="", allow="GET, PATCH")
+    )
+    client = CDPClient(session, "printer.local", 443, True, password="pw")
+    client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+
+    with pytest.raises(HPPrinterWriteError) as raised:
+        await client._patch(  # noqa: SLF001
+            CDP_REPORT_PRINT, {"state": "processing"}, job_endpoint=CDP_REPORT_PRINT
+        )
+
+    message = str(raised.value)
+    assert "405" in message
+    assert "PATCH" in message, "the message must say what was actually sent"
+    assert "GET, PATCH" in message, "the message must carry the Allow header"
+    # And it must not read as a bare status code any more.
+    assert "no detail given" not in message
+
+
+async def test_a_405_without_an_allow_header_says_so_rather_than_guessing() -> None:
+    """A device that omits Allow must not produce an empty hole in the message.
+
+    "the device allows nothing" is a claim, and it should not be made when the
+    header was simply absent. The method is the part that is always known,
+    because this code is what chose it.
+    """
+    session = MagicMock()
+    response = MagicMock()
+    response.status = 405
+    response.text = AsyncMock(return_value="")
+    response.headers = {}
+    context = MagicMock()
+    context.__aenter__ = AsyncMock(return_value=response)
+    context.__aexit__ = AsyncMock(return_value=False)
+    session.patch = MagicMock(return_value=context)
+
+    client = CDPClient(session, "printer.local", 443, True, password="pw")
+    client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+
+    with pytest.raises(HPPrinterWriteError) as raised:
+        await client._patch(  # noqa: SLF001
+            CDP_REPORT_PRINT, {"state": "processing"}, job_endpoint=CDP_REPORT_PRINT
+        )
+
+    message = str(raised.value)
+    assert "sent PATCH" in message
+    assert "no Allow header" in message
+
+
+async def test_a_400_still_reports_the_method_and_keeps_its_body() -> None:
+    """The other refusals gain the method too, and keep what they said before.
+
+    The 400 is what a real printer returns for a body it will not take, and the
+    body is the only place a reason can be. Adding the method costs nothing and
+    makes every refusal on this path answer the same question.
+    """
+    session = MagicMock()
+    session.patch = MagicMock(return_value=_patch_context(status=400, body=""))
+    client = CDPClient(session, "printer.local", 443, True, password="pw")
+    client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+
+    with pytest.raises(HPPrinterWriteError) as raised:
+        await client._patch(  # noqa: SLF001
+            CDP_REPORT_PRINT, {"state": "processing"}, job_endpoint=CDP_REPORT_PRINT
+        )
+
+    message = str(raised.value)
+    assert "HTTP 400" in message
+    assert "sent PATCH" in message
+    assert "no detail given" in message, "the existing wording must survive"
 
 
 async def test_both_cdp_writes_hand_over_the_url_they_can_be_read_back_from() -> None:
