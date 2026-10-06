@@ -553,6 +553,15 @@ class CDPClient:
             ) as response:
                 status = response.status
                 raw = await response.text()
+                # Kept because an error message that cannot say what was sent
+                # cannot be acted on. A 405 from this device means "that method
+                # is not allowed here" -- it arrives with an Allow header
+                # naming what is -- so a report of "HTTP 405" with no method
+                # and no Allow leaves the only useful question unanswerable
+                # from the outside. Both are free to read here.
+                sent_method = "PATCH"
+                allow = response.headers.get("Allow")
+                content_type = response.headers.get("Content-Type")
         except TimeoutError as err:
             # The device accepts a report by starting to build it, and the
             # response comes back when it feels like it. Measured: a status
@@ -603,6 +612,27 @@ class CDPClient:
             if detail:
                 message = f"{message} The device says: {detail}"
             raise HPPrinterWriteError(message)
+        if status == 405:
+            # The one status whose answer is a header rather than a body, so
+            # the generic handler below loses everything useful about it and
+            # leaves a bare "HTTP 405" for whoever has to act on it.
+            #
+            # On this device a 405 arrives with `Allow: GET, PATCH` and means
+            # the request arrived with some *other* method, which the shipped
+            # client never sends -- so seeing it here says the request that
+            # reached the printer was not the one this code made. Naming the
+            # method sent, what the device allows and what the body was turns
+            # that into something checkable in one press.
+            raise HPPrinterWriteError(
+                f"Printer rejected {endpoint}: HTTP 405. This client sent "
+                f"{sent_method}, and the device "
+                f"{f'allows {allow}' if allow else 'sent no Allow header'}"
+                f" (body: {raw.strip()[:120] or 'empty'}, "
+                f"content-type: {content_type or 'none'}). "
+                "That combination means the request was not made by this "
+                "code -- check whether Home Assistant is running a different "
+                "build, and reload the integration if it was just updated."
+            )
         if status >= 400:
             # The body is the only place the reason appears, and it is the
             # difference between "busy" and "no paper". On the CDP model
@@ -611,7 +641,8 @@ class CDPClient:
             # worth more than an error that reads like a broken integration.
             detail = raw.strip()[:200] if raw.strip() else "no detail given"
             raise HPPrinterWriteError(
-                f"Printer rejected {endpoint}: HTTP {status}, {detail}"
+                f"Printer rejected {endpoint}: HTTP {status} (sent "
+                f"{sent_method}), {detail}"
             )
 
         try:
