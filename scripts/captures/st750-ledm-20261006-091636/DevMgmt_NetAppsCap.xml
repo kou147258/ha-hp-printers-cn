@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- THIS DATA SUBJECT TO DISCLAIMER(S)INCLUDED WITH THE PRODUCT OF ORIGIN. -->
+<nacap:NetAppsCap xsi:schemaLocation="http://www.hp.com/schemas/imaging/con/ledm/netappcap/2009/06/24 ../schemas/NetAppsCap.xsd" xmlns:dd="http://www.hp.com/schemas/imaging/con/dictionaries/1.0/" xmlns:nacap="http://www.hp.com/schemas/imaging/con/ledm/netappcap/2009/06/24" xmlns:nadyn="http://www.hp.com/schemas/imaging/con/ledm/netappdyn/2009/06/24" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dd:Version>
+		<dd:Revision>SVN-IPG-LEDM.567</dd:Revision>
+		<dd:Date>2012-11-02</dd:Date>
+	</dd:Version>
+	<nacap:DNSSDConfigSupport>
+		<nacap:MDNSSupport access="readWrite">
+			<dd:MDNSSupport>enabled</dd:MDNSSupport>
+			<dd:MDNSSupport>disabled</dd:MDNSSupport>
+		</nacap:MDNSSupport>
+		<nacap:ApplicationServiceName typeof="dd:String" length="63" elementXPath="nadyn:DNSSDConfig/dd:ApplicationServiceName" access="readWrite"></nacap:ApplicationServiceName>
+		<nacap:DomainName typeof="dd:String" length="70" elementXPath="nadyn:DNSSDConfig/dd3:DomainName" access="readWrite"></nacap:DomainName>
+		<nacap:DNSSDPrintPreferredServiceSupport access="readWrite">
+			<dd:DNSSDPrintPreferredService>P9100</dd:DNSSDPrintPreferredService>
+			<dd:DNSSDPrintPreferredService>IPP</dd:DNSSDPrintPreferredService>
+		</nacap:DNSSDPrintPreferredServiceSupport>
+	</nacap:DNSSDConfigSupport>
+	<nacap:ProxyConfigSupport>
+		<nacap:ResourceURI typeof="dd:String" length="127" elementXPath="nadyn:ProxyConfig/dd:ResourceURI" access="readWrite"></nacap:ResourceURI>
+		<nacap:Port typeof="dd:Int" min="1" max="65535" step="1" elementXPath="nadyn:ProxyConfig/dd:Port" access="readWrite"></nacap:Port>
+		<nacap:UserName typeof="dd:String" length="63" elementXPath="nadyn:ProxyConfig/dd:UserName" access="readWrite"></nacap:UserName>
+		<nacap:Password typeof="dd:String" length="31" elementXPath="nadyn:ProxyConfig/dd:Password" access="writeOnly"></nacap:Password>
+		<nacap:ProxySupport access="readWrite">
+			<dd:ProxySupport>off</dd:ProxySupport>
+			<dd:ProxySupport>on</dd:ProxySupport>
+		</nacap:ProxySupport>
+		<nacap:ProxyModeSupport access="readWrite">
+			<nadyn:ProxyMode>manual</nadyn:ProxyMode>
+		</nacap:ProxyModeSupport>
+	</nacap:ProxyConfigSupport>
+	<nacap:SNMPConfigWithVersionSupport>
+		<nacap:SNMPSupport access="readWrite">
+			<dd:SNMP>enabled</dd:SNMP>
+			<dd:SNMP>disabled</dd:SNMP>
+		</nacap:SNMPSupport>
+		<nacap:AccessOptionSupport access="readWrite">
+			<dd:AccessOption>readWrite</dd:AccessOption>
+			<dd:AccessOption>readOnly</dd:AccessOption>
+		</nacap:AccessOptionSupport>
+		<nacap:GetCommunityNameConfigSupport access="readWrite">
+			<dd:GetCommunityNameConfig>publicAllowed</dd:GetCommunityNameConfig>
+			<dd:GetCommunityNameConfig>publicNotAllowed</dd:GetCommunityNameConfig>
+		</nacap:GetCommunityNameConfigSupport>
+		<nacap:GetCommunityName typeof="dd:String" length="23" access="readWrite" elementXPath="dd:SNMPConfigWithVersion/dd:GetCommunityName"></nacap:GetCommunityName>
+		<nacap:SetCommunityName typeof="dd:String" length="23" access="readWrite" elementXPath="dd:SNMPConfigWithVersion/dd:SetCommunityName"></nacap:SetCommunityName>
+		<nacap:Version typeof="dd:String" length="3" access="readOnly" elementXPath="dd:SNMPConfigWithVersion/dd:Version"></nacap:Version>
+	</nacap:SNMPConfigWithVersionSupport>
+	<nacap:WebServicesConfigSupport>
+		<nacap:WSDiscovery access="readWrite">
+			<dd:WSDiscovery>enabled</dd:WSDiscovery>
+			<dd:WSDiscovery>disabled</dd:WSDiscovery>
+		</nacap:WSDiscovery>
+		<nacap:WSPrint access="readWrite">
+			<dd:WSPrint>enabled</dd:WSPrint>
+			<dd:WSPrint>disabled</dd:WSPrint>
+		</nacap:WSPrint>
+		<nacap:WSScan typeof="dd:Boolean" selected="enabled" deselected="disabled" elementXPath="nadyn:NetAppsDyn/nadyn:WebServicesConfig/nadyn:WSScan" access="readWrite"></nacap:WSScan>
+	</nacap:WebServicesConfigSupport>
+	<nacap:DHCPv6Support access="readWrite">
+		<dd:DHCPv6>enabled</dd:DHCPv6>
+		<dd:DHCPv6>disabled</dd:DHCPv6>
+	</nacap:DHCPv6Support>
+	<nacap:LLMNRSupport access="readWrite">
+		<dd:LLMNR>enabled</dd:LLMNR>
+		<dd:LLMNR>disabled</dd:LLMNR>
+	</nacap:LLMNRSupport>
+	<nacap:HTTPSRedirectionSupport access="readWrite">
+		<dd:HTTPSRedirection>enabled</dd:HTTPSRedirection>
+		<dd:HTTPSRedirection>disabled</dd:HTTPSRedirection>
+	</nacap:HTTPSRedirectionSupport>
+	<nacap:P9100Support access="readWrite">
+		<dd:Port9100PrintingSupport>enabled</dd:Port9100PrintingSupport>
+		<dd:Port9100PrintingSupport>disabled</dd:Port9100PrintingSupport>
+	</nacap:P9100Support>
+	<nacap:DHCPv4FQDNSupport access="readWrite">
+		<dd:DHCPv4FQDN>enabled</dd:DHCPv4FQDN>
+		<dd:DHCPv4FQDN>disabled</dd:DHCPv4FQDN>
+	</nacap:DHCPv4FQDNSupport>
+	<nacap:IPP access="readWrite">
+		<dd:IPPSupport>enabled</dd:IPPSupport>
+		<dd:IPPSupport>disabled</dd:IPPSupport>
+	</nacap:IPP>
+	<nacap:WebScanSupport access="readWrite">
+		<nadyn:WebScan>enabled</nadyn:WebScan>
+		<nadyn:WebScan>disabled</nadyn:WebScan>
+	</nacap:WebScanSupport>
+	<nacap:DirectPrintSupport access="readWrite">
+		<nadyn:DirectPrint>disabled</nadyn:DirectPrint>
+		<nadyn:DirectPrint>enabled</nadyn:DirectPrint>
+	</nacap:DirectPrintSupport>
+	<nacap:WPADSettingsSupport>
+		<nacap:ResourceURI typeof="dd:string" length="127" elementXPath="nadyn:NetAppsDyn/nadyn:WPADSettings/nadyn:ResourceURI" access="readOnly"></nacap:ResourceURI>
+		<nacap:Port typeof="dd:integer" elementXPath="nadyn:NetAppsDyn/nadyn:WPADSettings/nadyn:Port" min="0" max="65535" step="1" access="readOnly"></nacap:Port>
+		<nacap:WPADStatusSupport access="readOnly">
+			<nacap:WPADStatus>failure</nacap:WPADStatus>
+			<nacap:WPADStatus>inProgress</nacap:WPADStatus>
+			<nacap:WPADStatus>notStarted</nacap:WPADStatus>
+			<nacap:WPADStatus>success</nacap:WPADStatus>
+		</nacap:WPADStatusSupport>
+	</nacap:WPADSettingsSupport>
+</nacap:NetAppsCap>
