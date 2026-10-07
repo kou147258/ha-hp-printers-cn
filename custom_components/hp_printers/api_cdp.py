@@ -79,6 +79,7 @@ from .const import (
     CDP_WIRELESS_CONFIG,
     CDP_WRITE_TIMEOUT_SECONDS,
     COLOR_NAMES,
+    MAX_CONCURRENT_READS,
 )
 from .models import (
     ActiveAlert,
@@ -443,6 +444,11 @@ class CDPClient:
         self._ssl = use_ssl
         self._ssl_context: ssl.SSLContext | bool = ssl_context or False
         self._password = password or ""
+        # Every read on this client passes through this gate. The coordinator
+        # gathers sixteen of them and the device stops answering past three --
+        # see MAX_CONCURRENT_READS for the measurements, and for what the gate
+        # is worth on the write path as well as the read one.
+        self._read_gate = asyncio.Semaphore(MAX_CONCURRENT_READS)
         # Built on first write, not at construction: a config entry that is
         # never pressed costs nothing, and see _write_session for why it is not
         # built per press either.
@@ -460,12 +466,23 @@ class CDPClient:
         return f"{scheme}://{self._host}:{self._port}"
 
     async def _fetch(self, endpoint: str) -> dict[str, Any]:
-        """GET one CDP document and return the decoded object."""
+        """GET one CDP document and return the decoded object.
+
+        Every read on this client goes through the gate, whatever else calls
+        it, so the width the device sees is the width it can answer -- see
+        MAX_CONCURRENT_READS. The gate is held across the request rather than
+        around the gather, because the gather is where the sixteen came from
+        and one semaphore in ``async_get_data`` would have to be threaded
+        through every helper that reads.
+        """
         url = f"{self.base_url}{endpoint}"
         try:
-            async with self._session.get(
-                url, timeout=REQUEST_TIMEOUT, ssl=self._ssl_context
-            ) as response:
+            async with (
+                self._read_gate,
+                self._session.get(
+                    url, timeout=REQUEST_TIMEOUT, ssl=self._ssl_context
+                ) as response,
+            ):
                 if response.status == 404:
                     raise HPPrinterNotSupportedError(f"404 from {endpoint}")
                 response.raise_for_status()
