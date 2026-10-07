@@ -17,7 +17,7 @@ entities, config flow -- has to know which protocol a printer speaks.
 """
 
 import asyncio
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from datetime import datetime
 import json
 import logging
@@ -93,6 +93,38 @@ from .models import (
 _LOGGER = logging.getLogger(__name__)
 
 REQUEST_TIMEOUT = ClientTimeout(total=20)
+
+
+@dataclass(frozen=True, kw_only=True)
+class WriteAttempt:
+    """One attempt at a CDP write, and everything the response said about it.
+
+    Returned rather than raised so that the two ways a write can fail without
+    being refused -- a timeout and a dropped connection -- are values the caller
+    can decide about, instead of exceptions that carry the same information in
+    different places.
+
+    The header fields are here for one reason: a 405 is answered entirely in
+    headers, on a device that advertises the method it is refusing, and a
+    message built without them cannot say anything about it.
+    """
+
+    status: int
+    body: str
+    # Both of these mean the request did not complete. `timed_out` is the one
+    # that might still be running on the printer, which is why the two are kept
+    # apart rather than folded into an error.
+    timed_out: bool = False
+    error: Exception | None = None
+    allow: str | None = None
+    content_type: str | None = None
+    answered_by: str | None = None
+    http_version: str = ""
+    # Whether this was the second attempt. It is part of the record because
+    # "refused once" and "refused twice, on two connections" are different
+    # reports about the same device.
+    retried: bool = False
+
 
 # A write gets its own budget rather than borrowing the read's, and the
 # difference is deliberate: on the CDP models the PATCH that starts a report
@@ -543,55 +575,52 @@ class CDPClient:
         # paper. It records the operation, never the credential -- which is
         # easy here, because the credential is never sent at all.
         _LOGGER.warning("User-requested write: PATCH %s body=%s", endpoint, payload)
-        try:
-            async with self._session.patch(
-                url,
-                data=payload.encode(),
-                timeout=WRITE_TIMEOUT,
-                ssl=self._ssl_context,
-                headers=self._auth_header(),
-            ) as response:
-                status = response.status
-                raw = await response.text()
-                # Kept because an error message that cannot say what was sent
-                # cannot be acted on. A 405 from this device means "that method
-                # is not allowed here" -- it arrives with an Allow header
-                # naming what is -- so a report of "HTTP 405" with no method
-                # and no Allow leaves the only useful question unanswerable
-                # from the outside. Both are free to read here.
-                sent_method = "PATCH"
-                allow = response.headers.get("Allow")
-                content_type = response.headers.get("Content-Type")
-                # The question this release exists to answer is *who* answered.
-                # The device advertises patch on this link and answers a PATCH
-                # with 400 when one is sent to it directly, so a 405 carrying
-                # `Allow: GET` came from something else on the path -- a proxy,
-                # or a different server entirely. The Server header and the
-                # HTTP version are what tell those apart, and without them the
-                # message can only say what happened, not who did it.
-                answered_by = response.headers.get("Server")
-                http_version = response.version
-        except TimeoutError as err:
+
+        attempt = await self._send_write(url, payload)
+
+        if attempt.status == 405 and not attempt.retried:
+            # A 405 is a refusal, not a half-finished job: the device did not
+            # accept the method, so nothing was started and nothing needs undoing.
+            # That is what makes this the one status safe to send twice, and the
+            # distinction is the point -- a timeout may well have been accepted
+            # and is still running, which is why it is never retried.
+            #
+            # The first attempt reached the device and the device answered, so
+            # the device is up. What differs between two attempts is the
+            # connection, so the retry is issued on one just opened.
+            _LOGGER.debug(
+                "Write to %s refused with 405; retrying once on a fresh connection",
+                endpoint,
+            )
+            attempt = await self._send_write(url, payload, fresh_connection=True)
+
+        if attempt.timed_out:
             # The device accepts a report by starting to build it, and the
-            # response comes back when it feels like it. Measured: a status
-            # page in 3.1s, and a report that is doing real work first takes
-            # longer than the budget. The write is very probably running, so
-            # the question is not "did it fail" but "is it still going".
+            # response comes back when it feels like it. Measured: a status page
+            # in 3.1s, and a report doing real work first takes longer than the
+            # budget. The write is very probably running, so the question is not
+            # "did it fail" but "is it still going".
             if job_endpoint is not None:
-                return await self._confirm_after_timeout(endpoint, job_endpoint, err)
+                return await self._confirm_after_timeout(
+                    endpoint, job_endpoint, attempt.error
+                )
             raise HPPrinterWriteError(
                 f"Timeout writing {endpoint}; the printer may still be running it"
-            ) from err
-        except ClientError as err:
+            ) from attempt.error
+
+        if attempt.error is not None:
             # A dropped connection is genuinely ambiguous, and it is said so
             # rather than dressed up as a clean failure: the request may have
             # reached the device before the connection went. What must not
             # happen is a message that reads as "nothing happened", because
             # that is the message a person acts on by pressing again.
             raise HPPrinterWriteError(
-                f"Error writing {endpoint}: {err}. The printer may still be "
-                "running it -- check the printer before pressing again."
-            ) from err
+                f"Error writing {endpoint}: {attempt.error}. The printer may "
+                "still be running it -- check the printer before pressing again."
+            ) from attempt.error
+
+        status = attempt.status
+        raw = attempt.body
 
         if status in (401, 403):
             # Measured: a CDP write answers 400 for a body it will not accept,
@@ -623,25 +652,31 @@ class CDPClient:
             raise HPPrinterWriteError(message)
         if status == 405:
             # The one status whose answer is a header rather than a body, so
-            # the generic handler below loses everything useful about it and
-            # leaves a bare "HTTP 405" for whoever has to act on it.
+            # the generic handler below loses everything useful about it.
             #
-            # On this device a 405 arrives with `Allow: GET, PATCH` and means
-            # the request arrived with some *other* method, which the shipped
-            # client never sends -- so seeing it here says the request that
-            # reached the printer was not the one this code made. Naming the
-            # method sent, what the device allows and what the body was turns
-            # that into something checkable in one press.
+            # Measured, on the machine this was written for: a fresh capture
+            # shows the link advertising patch, and a PATCH sent to it from
+            # outside Home Assistant is answered with 400 -- method accepted,
+            # body refused. Home Assistant gets 405 `Allow: GET` from the same
+            # link, and the Server header proves it is the printer's own HTTP
+            # server rather than something in between. What differs between the
+            # two callers is the connection: Home Assistant's session is shared
+            # with every other integration in the instance, and this printer
+            # drops handshakes and resets idle connections.
+            #
+            # So the refusal is repeated once on a connection opened for the
+            # write, and if it survives that, the message says so -- because
+            # "it refused twice, on two connections" is a different report from
+            # "it refused once" and only one of them is a bug in here.
             raise HPPrinterWriteError(
-                f"Printer rejected {endpoint}: HTTP 405. This client sent "
-                f"{sent_method}, and the response "
-                f"{f'allowed {allow}' if allow else 'carried no Allow header'}"
-                f", from server {answered_by or 'unnamed'} over HTTP "
-                f"{http_version}. The printer itself advertises patch on this "
-                f"link and answers a PATCH sent to it directly, so anything "
-                f"other than its own server is between Home Assistant and the "
-                f"printer. Body: {raw.strip()[:120] or 'empty'}, content-type: "
-                f"{content_type or 'none'}."
+                f"Printer rejected {endpoint}: HTTP 405, twice, the second on a "
+                f"connection opened for the write. This client sent PATCH and "
+                f"the response "
+                f"{f'allowed {attempt.allow}' if attempt.allow else 'carried no Allow header'}"
+                f", from server {attempt.answered_by or 'unnamed'} over HTTP "
+                f"{attempt.http_version}. Body: "
+                f"{raw.strip()[:120] or 'empty'}, content-type: "
+                f"{attempt.content_type or 'none'}."
             )
         if status >= 400:
             # The body is the only place the reason appears, and it is the
@@ -651,8 +686,7 @@ class CDPClient:
             # worth more than an error that reads like a broken integration.
             detail = raw.strip()[:200] if raw.strip() else "no detail given"
             raise HPPrinterWriteError(
-                f"Printer rejected {endpoint}: HTTP {status} (sent "
-                f"{sent_method}), {detail}"
+                f"Printer rejected {endpoint}: HTTP {status} (sent PATCH), {detail}"
             )
 
         try:
@@ -662,6 +696,50 @@ class CDPClient:
             # non-JSON body; that is not a failure of the write.
             return {}
         return document if isinstance(document, dict) else {}
+
+    async def _send_write(
+        self, url: str, payload: str, *, fresh_connection: bool = False
+    ) -> WriteAttempt:
+        """Send the PATCH once and describe what came back.
+
+        Split out so the retry decision and the reporting both read the same
+        record, and so a write never shares a call site with the code that
+        interprets it.
+
+        ``fresh_connection`` sets ``force_close``, which makes aiohttp open a
+        connection for this request and close it afterwards rather than taking
+        one from the pool. The pool is Home Assistant's, shared with every
+        other integration; this printer drops TLS handshakes when too many
+        overlap and resets connections it has finished with, and a write is the
+        one request here where a connection in an unexpected state costs paper.
+
+        A session of its own would be the tidier-looking answer and is not
+        used: it has to be closed on every path out of here, including the two
+        that raise, and the failure mode of forgetting is a leak that only
+        appears when someone presses a button repeatedly.
+        """
+        try:
+            async with self._session.patch(
+                url,
+                data=payload.encode(),
+                timeout=WRITE_TIMEOUT,
+                ssl=self._ssl_context,
+                headers=self._auth_header(),
+                force_close=fresh_connection,
+            ) as response:
+                return WriteAttempt(
+                    status=response.status,
+                    body=await response.text(),
+                    allow=response.headers.get("Allow"),
+                    content_type=response.headers.get("Content-Type"),
+                    answered_by=response.headers.get("Server"),
+                    http_version=str(response.version),
+                    retried=fresh_connection,
+                )
+        except TimeoutError as err:
+            return WriteAttempt(status=0, body="", timed_out=True, error=err)
+        except ClientError as err:
+            return WriteAttempt(status=0, body="", error=err)
 
     async def _confirm_after_timeout(
         self, endpoint: str, job_endpoint: str, err: Exception
