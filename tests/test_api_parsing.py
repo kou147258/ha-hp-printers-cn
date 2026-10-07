@@ -9,6 +9,7 @@ used by devices without a real-time clock, and the ``PreviousCartridgeData``
 subtree that shares field names with the installed cartridge.
 """
 
+import asyncio
 from datetime import datetime
 import ssl
 from typing import Any
@@ -31,6 +32,7 @@ from custom_components.hp_printers.const import (
     ENDPOINT_PRODUCT_LOGS,
     ENDPOINT_PRODUCT_STATUS,
     ENDPOINT_PRODUCT_USAGE,
+    MAX_CONCURRENT_READS,
     STATUS_OPTIONS,
 )
 
@@ -52,13 +54,20 @@ def _xml(value: str) -> Any:
 
 
 def _new_client() -> LEDMClient:
-    """Construct an ``LEDMClient`` without calling its constructor."""
+    """Construct an ``LEDMClient`` without calling its constructor.
+
+    The read gate has to be set up here even though the constructor is skipped:
+    every read goes through it, and a client built this way would otherwise
+    reach ``_fetch`` with no gate at all. Hand-built clients are the one place
+    that can drift from the real constructor, so this mirrors it.
+    """
     client = LEDMClient.__new__(LEDMClient)
     client._session = MagicMock()  # noqa: SLF001
     client._host = "printer.local"  # noqa: SLF001
     client._port = 80  # noqa: SLF001
     client._ssl = False  # noqa: SLF001
     client._ssl_context = False  # noqa: SLF001
+    client._read_gate = asyncio.Semaphore(MAX_CONCURRENT_READS)  # noqa: SLF001
     return client
 
 
