@@ -50,22 +50,31 @@ class _CountingSession:
     reason and measure the parser rather than the gate.
     """
 
-    def __init__(self, body: str = "{}") -> None:
+    def __init__(self, body: str = "{}", hold_seconds: float = 0.0) -> None:
         self.in_flight = 0
         self.peak = 0
         self.opened = 0
         self.body = body
+        self.hold_seconds = hold_seconds
 
     def get(self, *args, **kwargs):
-        return _CountingContext(self)
+        # A read that returns immediately frees its slot before anything else
+        # can be waiting for it, which would make every test of the gate pass
+        # for the wrong reason. These hold.
+        return _CountingContext(self, hold=self.hold_seconds)
+
+    # The write path uses the same session, and it is what this test is about.
+    def patch(self, *args, **kwargs):
+        return _CountingContext(self, hold=0.0)
 
     async def wait_for_all(self, coros) -> None:
         await asyncio.gather(*coros)
 
 
 class _CountingContext:
-    def __init__(self, session: _CountingSession) -> None:
+    def __init__(self, session: "_CountingSession", hold: float = 0.0) -> None:
         self._session = session
+        self._hold = hold
         self._response = None
 
     async def __aenter__(self):
@@ -74,6 +83,8 @@ class _CountingContext:
         session.opened += 1
         session.peak = max(session.peak, session.in_flight)
         await asyncio.sleep(0)  # let the others pile up
+        if self._hold:
+            await asyncio.sleep(self._hold)
         response = MagicMock()
         response.status = 200
         response.text = AsyncMock(return_value=session.body)
@@ -158,6 +169,42 @@ async def test_every_request_still_goes_out(factory, body: str, label: str) -> N
     assert all(result is not None for result in results), (
         f"{label} turned some successful reads into empty documents"
     )
+
+
+async def test_a_write_never_makes_the_request_after_the_gate_through() -> None:
+    """The write path has to share the gate, or it is the third request.
+
+    The device answers two at a time and stops answering past that. The read
+    gate holds that at two, but a write that bypasses it is the third whenever a
+    refresh is in flight -- which is most of the time, because the coordinator
+    polls every sixty seconds and a person presses a button whenever they notice
+    something. The user's log has that exact shape: five writes attempted, two
+    refused.
+
+    Measured at the session rather than at the fetch, so this counts requests on
+    the wire rather than callers waiting on a lock.
+    """
+
+    client = CDPClient(MagicMock(), "printer.local", 443, True, password="pw")
+    session = _CountingSession(JSON_BODY, hold_seconds=0.08)
+    client._session = session  # noqa: SLF001
+
+    # Two reads occupy both slots and stay open long enough to be observed.
+    fetch = client._fetch  # noqa: SLF001
+    readers = [asyncio.create_task(fetch(path)) for path in PATHS[:2]]
+
+    write = asyncio.create_task(
+        client._send_write("/cdm/report/v1/print", "{}", fresh_connection=False)  # noqa: SLF001
+    )
+    await asyncio.sleep(0.03)
+    # While both slots were held the write must not have been sent at all.
+    assert session.opened == 2, (
+        "the write went out with both slots full, so it was the third "
+        f"request on the wire; opened={session.opened}"
+    )
+
+    await asyncio.gather(*readers, write)
+    assert session.opened == 3, "and it did go out once a slot freed"
 
 
 def test_the_limit_is_the_measured_one() -> None:
