@@ -1,6 +1,6 @@
 """Sensor platform for the HP Printers integration."""
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import date
 from typing import Any
@@ -22,6 +22,55 @@ from .entity import HPConsumableEntity, HPPrinterEntity, HPSubunitEntity
 from .models import Consumable, NetworkHealth, PrinterData, ProductInfo
 
 PARALLEL_UPDATES = 0
+
+# Every vocabulary a device supplies for an ENUM sensor, in one place.
+#
+# These have to be the same list the sensor declares as its ``options``, and
+# the value function clamps against this object rather than a copy -- which is
+# the whole point. Spelling the options twice is how a list and a clamp drift
+# apart, and the result is not a visible bug but a sensor Home Assistant
+# refuses to create, followed by a ValueError on every poll for as long as the
+# integration is installed.
+ORIENTATIONS: tuple[str, ...] = ("Portrait", "Landscape")
+
+INTERNET_DIAGNOSTICS: tuple[str, ...] = (
+    "connected",
+    "disconnected",
+    "unknown",
+    "notTested",
+)
+CARRIAGE_STATES: tuple[str, ...] = ("ok", "notOk", "unknown")
+
+CALIBRATION_RESULTS: tuple[str, ...] = (
+    "passed",
+    "failed",
+    "cancelled",
+    "unknown",
+)
+SETUP_STATES: tuple[str, ...] = (
+    "idle",
+    "actionPending",
+    "inProgress",
+    "complete",
+    # The device chooses this word. "I do not know what it is saying" is a
+    # state a reader can act on; an unavailable entity is not, because it
+    # reads as "this printer does not report it".
+    "unknown",
+)
+ALERT_SEVERITIES: tuple[str, ...] = (
+    "information",
+    "warning",
+    "error",
+    "critical",
+    "unknown",
+)
+FIRMWARE_RESULTS: tuple[str, ...] = (
+    "succeeded",
+    "failed",
+    "cancelled",
+    "inProgress",
+    "unknown",
+)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -141,15 +190,39 @@ def _worst_alert(data: PrinterData) -> str | None:
     return data.active_alerts[0].severity
 
 
+def _enum(value: str | None, options: Sequence[str]) -> str | None:
+    """Return ``value`` if the sensor can display it, and something it can if not.
+
+    Home Assistant refuses to add an ``ENUM`` sensor whose state is not one of
+    its declared options, and raises again on **every** state write. So one
+    word missing from a list is not one error at setup: it is an entity that
+    never gets created, plus a ValueError every poll, forever.
+
+    That is what happened on the Smart Tank750: it reported an alert severity of
+    ``info``, the options listed ``information``, and
+    ``sensor.smart_tank_750_series_17`` never existed -- with the coordinator
+    logging the failure once a minute.
+
+    All eight enum sensors here read a string the device chose, and five were
+    passing it through untouched. The clamp falls back to ``unknown`` where the
+    vocabulary has one, and to ``None`` where it does not -- None is a valid
+    state for a sensor, so it costs availability rather than raising.
+    """
+    if value in options:
+        return value
+    return "unknown" if "unknown" in options else None
+
+
 PRINTER_SENSORS: tuple[HPPrinterSensorDescription, ...] = (
     HPPrinterSensorDescription(
         key="status",
         translation_key="status",
         device_class=SensorDeviceClass.ENUM,
         options=STATUS_OPTIONS,
-        value_fn=lambda data, _info: (
-            data.status if data.status in STATUS_OPTIONS else None
-        ),
+        # "unknown" rather than None: a status the sensor cannot display is
+        # still a status, and None makes the entity unavailable, which reads as
+        # "the printer is gone" rather than "it said something new".
+        value_fn=lambda data, _info: _enum(data.status, STATUS_OPTIONS),
         attrs_fn=lambda data, _info: {
             "raw_status": data.status,
             "message": data.status_message,
@@ -371,12 +444,10 @@ PRINTER_SENSORS: tuple[HPPrinterSensorDescription, ...] = (
         key="calibration_result",
         translation_key="calibration_result",
         device_class=SensorDeviceClass.ENUM,
-        options=["passed", "failed", "cancelled", "unknown"],
+        options=CALIBRATION_RESULTS,
         entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda data, _info: (
-            data.calibration_last_result
-            if data.calibration_last_result in ("passed", "failed", "cancelled")
-            else "unknown"
+        value_fn=lambda data, _info: _enum(
+            data.calibration_last_result, CALIBRATION_RESULTS
         ),
         attrs_fn=lambda data, _info: {
             "status": data.calibration_status,
@@ -484,12 +555,17 @@ PRINTER_SENSORS: tuple[HPPrinterSensorDescription, ...] = (
         translation_key="setup_state",
         entity_category=EntityCategory.DIAGNOSTIC,
         device_class=SensorDeviceClass.ENUM,
-        options=["idle", "actionPending", "inProgress", "complete"],
+        options=SETUP_STATES,
         # The two protocols put this in different documents -- CDP in
         # deviceSetup, read every poll; LEDM in the product configuration, read
         # on the slow cadence. One entity reading both is what stops the LEDM
         # side reporting "not supported" for something it does publish.
-        value_fn=lambda data, info: data.setup_operation_state or info.setup_phase,
+        #
+        # Clamped: the device chooses this word, and an unclamped value that is
+        # not in the options raises on every write rather than once.
+        value_fn=lambda data, info: _enum(
+            data.setup_operation_state or info.setup_phase, SETUP_STATES
+        ),
         attrs_fn=lambda data, _info: {
             "pending_steps": list(data.setup_pending_steps),
             "setup_complete": not data.setup_pending_steps,
@@ -546,8 +622,12 @@ PRINTER_SENSORS: tuple[HPPrinterSensorDescription, ...] = (
         # The device orders its own alerts by priority, so the first is the
         # one it considers most urgent. The severity words are its own
         # vocabulary, taken from alert/v1/capabilities.
-        options=["information", "warning", "error", "critical"],
-        value_fn=lambda data, _info: _worst_alert(data),
+        # A device that invents a new word should cost one unknown, not a broken
+        # entity and a log full of tracebacks. So the option lists live here as
+        # constants and the value functions clamp against *the same object*: a
+        # list spelled out twice is a list that can drift.
+        options=ALERT_SEVERITIES,
+        value_fn=lambda data, _info: _enum(_worst_alert(data), ALERT_SEVERITIES),
     ),
     # --- firmware ---
     # The firmware build date was the only version marker before this, and it
@@ -559,8 +639,10 @@ PRINTER_SENSORS: tuple[HPPrinterSensorDescription, ...] = (
         translation_key="firmware_update_result",
         entity_category=EntityCategory.DIAGNOSTIC,
         device_class=SensorDeviceClass.ENUM,
-        options=["succeeded", "failed", "cancelled", "inProgress", "unknown"],
-        value_fn=lambda data, _info: data.firmware_update_result,
+        options=FIRMWARE_RESULTS,
+        value_fn=lambda data, _info: _enum(
+            data.firmware_update_result, FIRMWARE_RESULTS
+        ),
     ),
     HPPrinterSensorDescription(
         key="firmware_update_available",
@@ -612,8 +694,10 @@ PRINTER_SENSORS: tuple[HPPrinterSensorDescription, ...] = (
         translation_key="internet_diagnostics",
         entity_category=EntityCategory.DIAGNOSTIC,
         device_class=SensorDeviceClass.ENUM,
-        options=["connected", "disconnected", "unknown", "notTested"],
-        value_fn=lambda data, _info: data.internet_diagnostics_result,
+        options=INTERNET_DIAGNOSTICS,
+        value_fn=lambda data, _info: _enum(
+            data.internet_diagnostics_result, INTERNET_DIAGNOSTICS
+        ),
     ),
     # --- printer mechanics and consumables ---
     HPPrinterSensorDescription(
@@ -621,8 +705,8 @@ PRINTER_SENSORS: tuple[HPPrinterSensorDescription, ...] = (
         translation_key="carriage_status",
         entity_category=EntityCategory.DIAGNOSTIC,
         device_class=SensorDeviceClass.ENUM,
-        options=["ok", "notOk", "unknown"],
-        value_fn=lambda data, _info: data.carriage_status,
+        options=CARRIAGE_STATES,
+        value_fn=lambda data, _info: _enum(data.carriage_status, CARRIAGE_STATES),
     ),
     HPPrinterSensorDescription(
         key="cartridge_changes",
@@ -832,8 +916,8 @@ PRINTER_SENSORS: tuple[HPPrinterSensorDescription, ...] = (
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
         device_class=SensorDeviceClass.ENUM,
-        options=["Portrait", "Landscape"],
-        value_fn=lambda data, _info: data.default_orientation,
+        options=ORIENTATIONS,
+        value_fn=lambda data, _info: _enum(data.default_orientation, ORIENTATIONS),
     ),
     HPPrinterSensorDescription(
         key="failed_attempts_remaining",
