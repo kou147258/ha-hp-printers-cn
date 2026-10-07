@@ -415,30 +415,31 @@ async def test_a_405_without_an_allow_header_says_so_rather_than_guessing() -> N
     assert "no Allow header" in message
 
 
-async def test_a_405_names_who_answered_not_only_what_happened() -> None:
-    """The 405 has to say which server answered, because it is not the printer.
+async def test_a_405_names_who_answered_and_says_it_was_refused_twice() -> None:
+    """The 405 has to say which server answered, and how many times it asked.
 
-    Measured on the 580-590: ``/cdm/report/v1/print`` advertises ``patch``, and
-    a PATCH sent to it directly is answered with 400 -- the method is accepted
-    and the body refused. Only POST and PUT get 405, and those arrive with
-    ``Allow: GET, PATCH``.
+    Measured on the 580-590: a fresh capture shows the link advertising patch,
+    and a PATCH sent to it from outside Home Assistant is answered with 400 --
+    the method accepted, the body refused. Home Assistant gets 405
+    ``Allow: GET`` from the same link.
 
-    A 405 arriving with ``Allow: GET`` therefore came from something else, and
-    the only way to tell a proxy from a different server from the printer
-    itself is the Server header and the HTTP version. Without them the message
-    can report the symptom and not the cause, which is what made this
-    unanswerable from outside.
+    The first guess was that something in the middle of the path was answering,
+    and the Server header settled it: it is the printer's own HTTP server,
+    naming its own model and serial. So the message says which server answered
+    rather than drawing a conclusion about it, and it says the write was
+    refused twice on two connections -- because "once" and "twice, on separate
+    connections" are different reports about the same device, and only the
+    second one says the connection was not the variable.
     """
     session = MagicMock()
-    session.patch = MagicMock(
-        return_value=_patch_context(
-            status=405,
-            body="",
-            allow="GET",
-            server="nginx",
-            version="HTTP/1.1",
-        )
+    response = _patch_context(
+        status=405,
+        allow="GET",
+        server="HP HTTP Server; HP Smart Tank 580-590 series; Serial Number: CN53185GFY",
+        version="HTTP/1.1",
     )
+    session.patch = MagicMock(return_value=response)
+
     client = CDPClient(session, "printer.local", 443, True, password="pw")
     client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
 
@@ -448,11 +449,123 @@ async def test_a_405_names_who_answered_not_only_what_happened() -> None:
         )
 
     message = str(raised.value)
+    assert "twice" in message, "the refusal happened on two connections"
     assert "sent PATCH" in message
     assert "allowed GET" in message
-    assert "nginx" in message, "the message must name the server that answered"
-    assert "HTTP/1.1" in message, "and the HTTP version it spoke"
-    assert "between Home Assistant and the printer" in message
+    assert "HP HTTP Server" in message, "the message must name who answered"
+    assert "CN53185GFY" in message, "and that must be the whole header, not a prefix"
+    assert "HTTP/1.1" in message
+
+
+async def test_a_405_is_retried_once_and_only_on_a_fresh_connection() -> None:
+    """The retry is the fix, and it is only allowed on a refusal.
+
+    Two properties, and the second is the dangerous one:
+
+      * a 405 is retried, because the device refused the method and nothing was
+        started -- there is no half-printed report to undo;
+      * nothing else is retried. A timeout may well have been accepted and may
+        still be running, which is the reason the confirmation path exists at
+        all, and repeating it would print the report twice.
+
+    The connection matters as much as the count: the retry asks aiohttp for
+    ``force_close`` so it opens one rather than taking the shared pool's.
+    """
+    session = MagicMock()
+    session.patch = MagicMock(return_value=_patch_context(status=400, body=""))
+    client = CDPClient(session, "printer.local", 443, True, password="pw")
+    client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+
+    with pytest.raises(HPPrinterWriteError):
+        await client._patch(  # noqa: SLF001
+            CDP_REPORT_PRINT, {"state": "processing"}, job_endpoint=CDP_REPORT_PRINT
+        )
+
+    # A 400 is not a refusal of the method, so it is asked once and once only.
+    assert session.patch.call_count == 1, "a 400 must not be retried"
+
+    session.patch = MagicMock(
+        side_effect=[
+            _patch_context(status=405, allow="GET"),
+            _patch_context(status=204, body=""),
+        ]
+    )
+    client = CDPClient(session, "printer.local", 443, True, password="pw")
+    client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+
+    assert (
+        await client._patch(  # noqa: SLF001
+            CDP_REPORT_PRINT, {"state": "processing"}, job_endpoint=CDP_REPORT_PRINT
+        )
+        == {}
+    )
+
+    assert session.patch.call_count == 2
+    first, second = session.patch.call_args_list
+    assert first.kwargs["force_close"] is False
+    assert second.kwargs["force_close"] is True, (
+        "the retry must open its own connection rather than take the shared "
+        "pool's, which is the variable under test"
+    )
+
+
+async def test_a_printer_that_keeps_refusing_is_asked_exactly_twice() -> None:
+    """One retry, not "retry until something else happens".
+
+    The guard that makes this finite is ``not attempt.retried``. Removing it
+    produces a loop: a printer that refuses on a pooled connection *and* on a
+    fresh one would be asked again and again, and the only thing bounding it
+    would be the button being pressed fewer times.
+
+    Pinned as a count rather than as a message, because a loop shows up in the
+    request log long before it shows up in anything a person would read.
+    """
+    session = MagicMock()
+    session.patch = MagicMock(return_value=_patch_context(status=405, allow="GET"))
+    client = CDPClient(session, "printer.local", 443, True, password="pw")
+    client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+
+    with pytest.raises(HPPrinterWriteError):
+        await client._patch(  # noqa: SLF001
+            CDP_REPORT_PRINT, {"state": "processing"}, job_endpoint=CDP_REPORT_PRINT
+        )
+
+    assert session.patch.call_count == 2, (
+        "one attempt and one retry; a printer that refuses both must not be "
+        "asked a third time"
+    )
+
+
+async def test_a_timeout_is_never_retried() -> None:
+    """The one thing that must not regress.
+
+    A timed-out write may already be running on the printer. The confirmation
+    path exists precisely so that this case ends in "it is still working" rather
+    than "send it again", and a blanket retry -- added for 405, where nothing
+    was started -- is exactly the change that would undo that.
+    """
+    session = MagicMock()
+    context = MagicMock()
+    context.__aenter__ = AsyncMock(side_effect=TimeoutError)
+    context.__aexit__ = AsyncMock(return_value=False)
+    session.patch = MagicMock(return_value=context)
+
+    client = CDPClient(session, "printer.local", 443, True, password="pw")
+    client._fetch_optional = AsyncMock(  # noqa: SLF001
+        side_effect=[REPORTS_DOC, {"state": "idle", "lastResult": "success"}]
+    )
+
+    assert (
+        await client._patch(  # noqa: SLF001
+            CDP_REPORT_PRINT, {"state": "processing"}, job_endpoint=CDP_REPORT_PRINT
+        )
+        == {}
+    )
+
+    assert session.patch.call_count == 1, (
+        "a timed-out write may already be running; sending it again would "
+        "print the report twice"
+    )
 
 
 async def test_a_405_from_an_unnamed_server_says_so() -> None:
