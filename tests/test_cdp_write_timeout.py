@@ -29,6 +29,9 @@ breaks: a write that times out must never be retried, and must not be reported
 as a failure while the printer is still doing the work.
 """
 
+from __future__ import annotations
+
+import inspect
 import json
 from unittest.mock import AsyncMock, MagicMock
 
@@ -273,6 +276,11 @@ async def test_a_busy_printer_gets_a_sentence_instead_of_a_status_code() -> None
     session.patch = MagicMock(return_value=_patch_context(status=409))
     client = CDPClient(session, "printer.local", 443, True, password="pw")
     client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+    # The retry goes through a session of the client's own rather than the
+    # shared one, and that is a seam the tests have to hold: without this the
+    # second attempt builds a real aiohttp session and tries to resolve
+    # printer.local.
+    client._write_session = AsyncMock(return_value=session)  # noqa: SLF001
 
     with pytest.raises(HPPrinterWriteError) as raised:
         await client._patch(  # noqa: SLF001
@@ -300,6 +308,11 @@ async def test_a_busy_printer_that_explains_itself_is_still_believed() -> None:
     )
     client = CDPClient(session, "printer.local", 443, True, password="pw")
     client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+    # The retry goes through a session of the client's own rather than the
+    # shared one, and that is a seam the tests have to hold: without this the
+    # second attempt builds a real aiohttp session and tries to resolve
+    # printer.local.
+    client._write_session = AsyncMock(return_value=session)  # noqa: SLF001
 
     with pytest.raises(HPPrinterWriteError) as raised:
         await client._patch(  # noqa: SLF001
@@ -370,6 +383,11 @@ async def test_a_405_names_the_method_and_what_the_device_allows() -> None:
     )
     client = CDPClient(session, "printer.local", 443, True, password="pw")
     client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+    # The retry goes through a session of the client's own rather than the
+    # shared one, and that is a seam the tests have to hold: without this the
+    # second attempt builds a real aiohttp session and tries to resolve
+    # printer.local.
+    client._write_session = AsyncMock(return_value=session)  # noqa: SLF001
 
     with pytest.raises(HPPrinterWriteError) as raised:
         await client._patch(  # noqa: SLF001
@@ -404,6 +422,11 @@ async def test_a_405_without_an_allow_header_says_so_rather_than_guessing() -> N
 
     client = CDPClient(session, "printer.local", 443, True, password="pw")
     client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+    # The retry goes through a session of the client's own rather than the
+    # shared one, and that is a seam the tests have to hold: without this the
+    # second attempt builds a real aiohttp session and tries to resolve
+    # printer.local.
+    client._write_session = AsyncMock(return_value=session)  # noqa: SLF001
 
     with pytest.raises(HPPrinterWriteError) as raised:
         await client._patch(  # noqa: SLF001
@@ -442,6 +465,11 @@ async def test_a_405_names_who_answered_and_says_it_was_refused_twice() -> None:
 
     client = CDPClient(session, "printer.local", 443, True, password="pw")
     client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+    # The retry goes through a session of the client's own rather than the
+    # shared one, and that is a seam the tests have to hold: without this the
+    # second attempt builds a real aiohttp session and tries to resolve
+    # printer.local.
+    client._write_session = AsyncMock(return_value=session)  # noqa: SLF001
 
     with pytest.raises(HPPrinterWriteError) as raised:
         await client._patch(  # noqa: SLF001
@@ -455,6 +483,68 @@ async def test_a_405_names_who_answered_and_says_it_was_refused_twice() -> None:
     assert "HP HTTP Server" in message, "the message must name who answered"
     assert "CN53185GFY" in message, "and that must be the whole header, not a prefix"
     assert "HTTP/1.1" in message
+
+
+def test_everything_sent_to_a_real_session_is_a_real_aiohttp_argument() -> None:
+    """The kwarg check a mock cannot do, and the one this file got wrong.
+
+    2026.10.9 passed ``force_close=`` to ``session.patch``. It does not exist
+    there -- ``force_close`` is a ``TCPConnector`` setting -- and aiohttp
+    raises ``TypeError: ClientSession._request() got an unexpected keyword
+    argument``. Every maintenance button on the 580-590 died with it, released,
+    and the test suite was green throughout.
+
+    It was green because the session in every test is a MagicMock, and a
+    MagicMock accepts any keyword that is spelled like one. The defect was not
+    subtle to spot either; it just had nowhere to be spotted from.
+
+    So the write path is checked against aiohttp's actual signature. That is
+    cheap, it needs no network, and it turns "a parameter I believe exists" into
+    "a parameter that exists".
+    """
+    import aiohttp  # noqa: PLC0415
+
+    real = set(inspect.signature(aiohttp.ClientSession._request).parameters)  # noqa: SLF001
+
+    # Read the call site rather than trusting the docstring: the kwarg names are
+    # the same ones that will be handed to a real aiohttp at runtime.
+    source = inspect.getsource(CDPClient._send_write)  # noqa: SLF001
+    sent_kwargs = {
+        line.strip().split("=")[0].strip()
+        for line in source.splitlines()
+        if line.strip().startswith(("data=", "timeout=", "ssl=", "headers="))
+    }
+    assert sent_kwargs, "could not read the keyword arguments out of _send_write"
+    unknown = sent_kwargs - real
+    assert not unknown, (
+        f"passed to a real aiohttp request but not a real aiohttp argument: "
+        f"{sorted(unknown)}; a mocked session would have accepted them"
+    )
+
+
+async def test_the_fresh_connection_session_is_built_from_a_real_connector() -> None:
+    """The retry must go through a session whose connector actually closes.
+
+    Same class of bug, one level down: the previous version asked a *request*
+    for a connection that would not be reused, and the correct way to ask is a
+    connector. This checks the connector is really the thing being configured,
+    by building one and reading it back -- aiohttp keeps ``force_close`` on the
+    connector, so a False here means the connection would have been pooled after
+    all, which is the entire point of the retry.
+    """
+    client = CDPClient(MagicMock(), "printer.local", 443, True, password="pw")
+    session = await client._write_session()  # noqa: SLF001
+    try:
+        connector = session.connector
+        assert connector is not None
+        assert connector.force_close is True, (
+            "the write connection would be taken from a pool, which is the "
+            "thing this session exists to avoid"
+        )
+        # And it is the same one on the second call, not a second session.
+        assert await client._write_session() is session  # noqa: SLF001
+    finally:
+        await session.close()
 
 
 async def test_a_405_is_retried_once_and_only_on_a_fresh_connection() -> None:
@@ -475,6 +565,11 @@ async def test_a_405_is_retried_once_and_only_on_a_fresh_connection() -> None:
     session.patch = MagicMock(return_value=_patch_context(status=400, body=""))
     client = CDPClient(session, "printer.local", 443, True, password="pw")
     client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+    # The retry goes through a session of the client's own rather than the
+    # shared one, and that is a seam the tests have to hold: without this the
+    # second attempt builds a real aiohttp session and tries to resolve
+    # printer.local.
+    client._write_session = AsyncMock(return_value=session)  # noqa: SLF001
 
     with pytest.raises(HPPrinterWriteError):
         await client._patch(  # noqa: SLF001
@@ -484,14 +579,35 @@ async def test_a_405_is_retried_once_and_only_on_a_fresh_connection() -> None:
     # A 400 is not a refusal of the method, so it is asked once and once only.
     assert session.patch.call_count == 1, "a 400 must not be retried"
 
-    session.patch = MagicMock(
-        side_effect=[
-            _patch_context(status=405, allow="GET"),
-            _patch_context(status=204, body=""),
-        ]
-    )
-    client = CDPClient(session, "printer.local", 443, True, password="pw")
+    shared = MagicMock()
+    shared.patch = MagicMock(return_value=_patch_context(status=400, body=""))
+    client = CDPClient(shared, "printer.local", 443, True, password="pw")
     client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+    client._write_session = AsyncMock(  # noqa: SLF001
+        return_value=MagicMock(
+            patch=MagicMock(return_value=_patch_context(status=400, body=""))
+        )
+    )
+
+    with pytest.raises(HPPrinterWriteError):
+        await client._patch(  # noqa: SLF001
+            CDP_REPORT_PRINT, {"state": "processing"}, job_endpoint=CDP_REPORT_PRINT
+        )
+
+    # A 400 is not a refusal of the method, so it is asked once and once only.
+    assert shared.patch.call_count == 1, "a 400 must not be retried"
+    client._write_session.assert_not_awaited()  # noqa: SLF001
+
+    refused = _patch_context(status=405, allow="GET")
+    accepted = _patch_context(status=204, body="")
+    shared = MagicMock()
+    shared.patch = MagicMock(return_value=refused)
+    own = MagicMock()
+    own.patch = MagicMock(return_value=accepted)
+
+    client = CDPClient(shared, "printer.local", 443, True, password="pw")
+    client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+    client._write_session = AsyncMock(return_value=own)  # noqa: SLF001
 
     assert (
         await client._patch(  # noqa: SLF001
@@ -500,12 +616,10 @@ async def test_a_405_is_retried_once_and_only_on_a_fresh_connection() -> None:
         == {}
     )
 
-    assert session.patch.call_count == 2
-    first, second = session.patch.call_args_list
-    assert first.kwargs["force_close"] is False
-    assert second.kwargs["force_close"] is True, (
-        "the retry must open its own connection rather than take the shared "
-        "pool's, which is the variable under test"
+    assert shared.patch.call_count == 1, "the first attempt goes to the shared session"
+    assert own.patch.call_count == 1, (
+        "the retry must go through a session of the client's own rather than "
+        "take the shared pool's, which is the variable under test"
     )
 
 
@@ -524,6 +638,11 @@ async def test_a_printer_that_keeps_refusing_is_asked_exactly_twice() -> None:
     session.patch = MagicMock(return_value=_patch_context(status=405, allow="GET"))
     client = CDPClient(session, "printer.local", 443, True, password="pw")
     client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+    # The retry goes through a session of the client's own rather than the
+    # shared one, and that is a seam the tests have to hold: without this the
+    # second attempt builds a real aiohttp session and tries to resolve
+    # printer.local.
+    client._write_session = AsyncMock(return_value=session)  # noqa: SLF001
 
     with pytest.raises(HPPrinterWriteError):
         await client._patch(  # noqa: SLF001
@@ -579,6 +698,11 @@ async def test_a_405_from_an_unnamed_server_says_so() -> None:
     session.patch = MagicMock(return_value=_patch_context(status=405, allow="GET"))
     client = CDPClient(session, "printer.local", 443, True, password="pw")
     client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+    # The retry goes through a session of the client's own rather than the
+    # shared one, and that is a seam the tests have to hold: without this the
+    # second attempt builds a real aiohttp session and tries to resolve
+    # printer.local.
+    client._write_session = AsyncMock(return_value=session)  # noqa: SLF001
 
     with pytest.raises(HPPrinterWriteError) as raised:
         await client._patch(  # noqa: SLF001
@@ -601,6 +725,11 @@ async def test_a_400_still_reports_the_method_and_keeps_its_body() -> None:
     session.patch = MagicMock(return_value=_patch_context(status=400, body=""))
     client = CDPClient(session, "printer.local", 443, True, password="pw")
     client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+    # The retry goes through a session of the client's own rather than the
+    # shared one, and that is a seam the tests have to hold: without this the
+    # second attempt builds a real aiohttp session and tries to resolve
+    # printer.local.
+    client._write_session = AsyncMock(return_value=session)  # noqa: SLF001
 
     with pytest.raises(HPPrinterWriteError) as raised:
         await client._patch(  # noqa: SLF001
@@ -622,6 +751,11 @@ async def test_both_cdp_writes_hand_over_the_url_they_can_be_read_back_from() ->
     """
     client, session = _client()
     client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+    # The retry goes through a session of the client's own rather than the
+    # shared one, and that is a seam the tests have to hold: without this the
+    # second attempt builds a real aiohttp session and tries to resolve
+    # printer.local.
+    client._write_session = AsyncMock(return_value=session)  # noqa: SLF001
 
     await client.async_run_report("printQualityTestReport")
     assert session.patch.call_args.args[0].endswith("/cdm/report/v1/print")
