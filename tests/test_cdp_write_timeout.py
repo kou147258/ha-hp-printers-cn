@@ -91,18 +91,30 @@ PROCESSING = {
 def _patch_context(
     raises: BaseException | None = None,
     status: int = 204,
+    *,
     body: str = "",
     allow: str | None = None,
     content_type: str | None = None,
+    server: str | None = None,
+    version: str = "HTTP/1.1",
 ) -> MagicMock:
+    """A response the client can read back: status, body, and chosen headers.
+
+    Keyword-only past ``status`` because a seventh positional argument is where
+    a call site stops being readable -- ``_patch_context(405, "", "GET")`` says
+    nothing, while ``status=405, allow="GET"`` does.
+    """
     response = MagicMock()
     response.status = status
     response.text = AsyncMock(return_value=body)
     response.headers = {}
+    response.version = version
     if allow is not None:
         response.headers["Allow"] = allow
     if content_type is not None:
         response.headers["Content-Type"] = content_type
+    if server is not None:
+        response.headers["Server"] = server
 
     context = MagicMock()
     if raises is not None:
@@ -373,17 +385,18 @@ async def test_a_405_names_the_method_and_what_the_device_allows() -> None:
 
 
 async def test_a_405_without_an_allow_header_says_so_rather_than_guessing() -> None:
-    """A device that omits Allow must not produce an empty hole in the message.
+    """A response with no Allow header must be reported as having none.
 
-    "the device allows nothing" is a claim, and it should not be made when the
-    header was simply absent. The method is the part that is always known,
-    because this code is what chose it.
+    "allowed nothing" is a claim, and it should not be made when the header was
+    simply absent. The method and the answering server are the parts that are
+    always known, because this code chose one and the socket knows the other.
     """
     session = MagicMock()
     response = MagicMock()
     response.status = 405
     response.text = AsyncMock(return_value="")
     response.headers = {}
+    response.version = "HTTP/1.1"
     context = MagicMock()
     context.__aenter__ = AsyncMock(return_value=response)
     context.__aexit__ = AsyncMock(return_value=False)
@@ -400,6 +413,68 @@ async def test_a_405_without_an_allow_header_says_so_rather_than_guessing() -> N
     message = str(raised.value)
     assert "sent PATCH" in message
     assert "no Allow header" in message
+
+
+async def test_a_405_names_who_answered_not_only_what_happened() -> None:
+    """The 405 has to say which server answered, because it is not the printer.
+
+    Measured on the 580-590: ``/cdm/report/v1/print`` advertises ``patch``, and
+    a PATCH sent to it directly is answered with 400 -- the method is accepted
+    and the body refused. Only POST and PUT get 405, and those arrive with
+    ``Allow: GET, PATCH``.
+
+    A 405 arriving with ``Allow: GET`` therefore came from something else, and
+    the only way to tell a proxy from a different server from the printer
+    itself is the Server header and the HTTP version. Without them the message
+    can report the symptom and not the cause, which is what made this
+    unanswerable from outside.
+    """
+    session = MagicMock()
+    session.patch = MagicMock(
+        return_value=_patch_context(
+            status=405,
+            body="",
+            allow="GET",
+            server="nginx",
+            version="HTTP/1.1",
+        )
+    )
+    client = CDPClient(session, "printer.local", 443, True, password="pw")
+    client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+
+    with pytest.raises(HPPrinterWriteError) as raised:
+        await client._patch(  # noqa: SLF001
+            CDP_REPORT_PRINT, {"state": "processing"}, job_endpoint=CDP_REPORT_PRINT
+        )
+
+    message = str(raised.value)
+    assert "sent PATCH" in message
+    assert "allowed GET" in message
+    assert "nginx" in message, "the message must name the server that answered"
+    assert "HTTP/1.1" in message, "and the HTTP version it spoke"
+    assert "between Home Assistant and the printer" in message
+
+
+async def test_a_405_from_an_unnamed_server_says_so() -> None:
+    """A missing Server header must be reported as missing, not as blank.
+
+    "from server  over HTTP 1.1" reads as a rendering fault rather than a fact
+    about the response, and the whole point of the field is that it can be
+    absent.
+    """
+    session = MagicMock()
+    session.patch = MagicMock(return_value=_patch_context(status=405, allow="GET"))
+    client = CDPClient(session, "printer.local", 443, True, password="pw")
+    client._fetch_optional = AsyncMock(return_value=REPORTS_DOC)  # noqa: SLF001
+
+    with pytest.raises(HPPrinterWriteError) as raised:
+        await client._patch(  # noqa: SLF001
+            CDP_REPORT_PRINT, {"state": "processing"}, job_endpoint=CDP_REPORT_PRINT
+        )
+
+    message = str(raised.value)
+    assert "server unnamed" in message
+    assert "from server  over" not in message
 
 
 async def test_a_400_still_reports_the_method_and_keeps_its_body() -> None:
