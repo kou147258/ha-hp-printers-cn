@@ -562,6 +562,15 @@ class CDPClient:
                 sent_method = "PATCH"
                 allow = response.headers.get("Allow")
                 content_type = response.headers.get("Content-Type")
+                # The question this release exists to answer is *who* answered.
+                # The device advertises patch on this link and answers a PATCH
+                # with 400 when one is sent to it directly, so a 405 carrying
+                # `Allow: GET` came from something else on the path -- a proxy,
+                # or a different server entirely. The Server header and the
+                # HTTP version are what tell those apart, and without them the
+                # message can only say what happened, not who did it.
+                answered_by = response.headers.get("Server")
+                http_version = response.version
         except TimeoutError as err:
             # The device accepts a report by starting to build it, and the
             # response comes back when it feels like it. Measured: a status
@@ -625,13 +634,14 @@ class CDPClient:
             # that into something checkable in one press.
             raise HPPrinterWriteError(
                 f"Printer rejected {endpoint}: HTTP 405. This client sent "
-                f"{sent_method}, and the device "
-                f"{f'allows {allow}' if allow else 'sent no Allow header'}"
-                f" (body: {raw.strip()[:120] or 'empty'}, "
-                f"content-type: {content_type or 'none'}). "
-                "That combination means the request was not made by this "
-                "code -- check whether Home Assistant is running a different "
-                "build, and reload the integration if it was just updated."
+                f"{sent_method}, and the response "
+                f"{f'allowed {allow}' if allow else 'carried no Allow header'}"
+                f", from server {answered_by or 'unnamed'} over HTTP "
+                f"{http_version}. The printer itself advertises patch on this "
+                f"link and answers a PATCH sent to it directly, so anything "
+                f"other than its own server is between Home Assistant and the "
+                f"printer. Body: {raw.strip()[:120] or 'empty'}, content-type: "
+                f"{content_type or 'none'}."
             )
         if status >= 400:
             # The body is the only place the reason appears, and it is the
