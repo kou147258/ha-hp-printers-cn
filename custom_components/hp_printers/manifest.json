@@ -15,7 +15,7 @@
   "requirements": [
     "defusedxml>=0.7.1"
   ],
-  "version": "2026.10.15",
+  "version": "2026.10.16",
   "zeroconf": [
     {
       "type": "_ipp._tcp.local.",
