@@ -744,16 +744,33 @@ class CDPClient:
         ``session.patch`` was a MagicMock, and a MagicMock accepts any keyword
         that is spelled like one. So the session is built once, lazily, and
         owned by the client: one per config entry, not one per press.
+        A write also takes a slot in the read gate.
+
+        The gate exists because this device answers two requests at once and
+        stops answering past that -- measured, see MAX_CONCURRENT_READS. A write
+        that bypasses the gate is therefore the *third* request whenever a
+        refresh is in flight, which is most of the time: the coordinator polls
+        every sixty seconds and a person presses a button whenever they notice
+        something. The user's log shows exactly that shape -- five writes
+        attempted, two refused.
+
+        Waiting for a slot is cheap. A slot frees in well under a second, the
+        refresh is seconds long, and the alternative is a refusal the user has
+        to press again -- which is the whole thing the write path exists to
+        avoid.
         """
         session = await self._write_session() if fresh_connection else self._session
         try:
-            async with session.patch(
-                url,
-                data=payload.encode(),
-                timeout=WRITE_TIMEOUT,
-                ssl=self._ssl_context,
-                headers=self._auth_header(),
-            ) as response:
+            async with (
+                self._read_gate,
+                session.patch(
+                    url,
+                    data=payload.encode(),
+                    timeout=WRITE_TIMEOUT,
+                    ssl=self._ssl_context,
+                    headers=self._auth_header(),
+                ) as response,
+            ):
                 return WriteAttempt(
                     status=response.status,
                     body=await response.text(),
