@@ -25,7 +25,7 @@ import ssl
 import time
 from typing import Any
 
-from aiohttp import ClientError, ClientSession, ClientTimeout
+from aiohttp import ClientError, ClientSession, ClientTimeout, TCPConnector
 
 from .api import (
     HPPrinterConnectionError,
@@ -443,6 +443,10 @@ class CDPClient:
         self._ssl = use_ssl
         self._ssl_context: ssl.SSLContext | bool = ssl_context or False
         self._password = password or ""
+        # Built on first write, not at construction: a config entry that is
+        # never pressed costs nothing, and see _write_session for why it is not
+        # built per press either.
+        self._writer: ClientSession | None = None
 
     @property
     def host(self) -> str:
@@ -706,26 +710,32 @@ class CDPClient:
         record, and so a write never shares a call site with the code that
         interprets it.
 
-        ``fresh_connection`` sets ``force_close``, which makes aiohttp open a
-        connection for this request and close it afterwards rather than taking
-        one from the pool. The pool is Home Assistant's, shared with every
-        other integration; this printer drops TLS handshakes when too many
-        overlap and resets connections it has finished with, and a write is the
-        one request here where a connection in an unexpected state costs paper.
+        ``fresh_connection`` sends it through a session of this client's own
+        rather than Home Assistant's shared one, so aiohttp opens a connection
+        for the request and closes it afterwards instead of taking one from a
+        pool every integration in the instance shares. That pool is the variable
+        under test: this printer drops TLS handshakes when too many overlap and
+        resets connections it has finished with, and a write is the one request
+        in this integration where a connection in an unexpected state costs
+        paper.
 
-        A session of its own would be the tidier-looking answer and is not
-        used: it has to be closed on every path out of here, including the two
-        that raise, and the failure mode of forgetting is a leak that only
-        appears when someone presses a button repeatedly.
+        A connector cannot be asked for this per request. ``force_close`` is a
+        ``TCPConnector`` setting, and passing it to a request is a TypeError --
+        a previous version of this did exactly that and turned every
+        maintenance button on this model into "ClientSession._request() got an
+        unexpected keyword argument". The mocked session could not see it:
+        ``session.patch`` was a MagicMock, and a MagicMock accepts any keyword
+        that is spelled like one. So the session is built once, lazily, and
+        owned by the client: one per config entry, not one per press.
         """
+        session = await self._write_session() if fresh_connection else self._session
         try:
-            async with self._session.patch(
+            async with session.patch(
                 url,
                 data=payload.encode(),
                 timeout=WRITE_TIMEOUT,
                 ssl=self._ssl_context,
                 headers=self._auth_header(),
-                force_close=fresh_connection,
             ) as response:
                 return WriteAttempt(
                     status=response.status,
@@ -740,6 +750,30 @@ class CDPClient:
             return WriteAttempt(status=0, body="", timed_out=True, error=err)
         except ClientError as err:
             return WriteAttempt(status=0, body="", error=err)
+
+    async def _write_session(self) -> ClientSession:
+        """Return a session of this client's own, for a write that must not ride a pooled connection.
+
+        Built once and kept, rather than per press, because a session is not
+        cheap to construct and because one per config entry is ownership rather
+        than a leak: the client lives exactly as long as the entry does, and
+        Home Assistant drops the reference with it. The connector sets
+        ``force_close``, which is the only way to ask aiohttp not to reuse a
+        connection -- and it has to be set here, because it is not a request
+        keyword.
+        """
+        if self._writer is None or self._writer.closed:
+            self._writer = ClientSession(
+                connector=TCPConnector(
+                    # Nothing is ever taken from this pool, so one slot is
+                    # enough; a write is a single request at a time by
+                    # construction, since _patch issues them in sequence.
+                    limit=1,
+                    force_close=True,
+                    ssl=self._ssl_context or False,
+                )
+            )
+        return self._writer
 
     async def _confirm_after_timeout(
         self, endpoint: str, job_endpoint: str, err: Exception
