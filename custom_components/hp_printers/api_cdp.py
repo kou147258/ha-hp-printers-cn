@@ -658,16 +658,43 @@ class CDPClient:
                 f"This printer does not offer {endpoint} (HTTP 404)"
             )
         if status == 409:
-            # Measured: 0.06s, and an *empty* body, and only ever while another
-            # job is running. The generic handler below would render that as
-            # "HTTP 409, no detail given" -- a status code where the user needs
-            # a sentence. Where a firmware variant does put something in the
-            # body, that is the device explaining itself and it is kept.
+            # Measured on the 580-590: 0.06s, a JSON body reading
+            # {"code":"busy","message":"Resource is busy"}, and it is not
+            # always a queue.
+            #
+            # A job that never finishes leaves the report service reporting
+            # "processing" for ever, and the 580 does exactly that when a job
+            # is interrupted -- by a paper jam, or by the machine being powered
+            # off with work in progress, which it records as
+            # `printerImproperShutdown` and which was visible on the device
+            # after this was found. The print engine says idle and
+            # printerIsAcceptingJobs true the whole time, so the two services
+            # disagree, and every later report is refused with this same 409.
+            # Nothing clears it: a PATCH putting the job back to idle is
+            # answered with 400, and the printer's own web interface has no
+            # cancel for a report. Only a power cycle does.
+            #
+            # So "wait for it to finish" is the wrong instruction for the case
+            # that actually happens, and it is wrong in the way that costs the
+            # user their afternoon. Which of the two it is can be read: the job
+            # document says processing, the print service says idle, and the
+            # answer is a jam to clear and a machine to reboot.
             detail = raw.strip()[:200] if raw.strip() else ""
-            message = (
-                "The printer is already running another job. Wait for it to "
-                "finish, then press this again."
-            )
+            if await self._job_is_stuck():
+                message = (
+                    "This printer has a report job that has stopped and will not "
+                    "finish, and it is refusing every other report until that "
+                    "changes. It happens when a job is interrupted -- usually a "
+                    "paper jam, or the printer being powered off while it was "
+                    "working. There is nothing to wait for: clear any paper jam, "
+                    "then power-cycle the printer. The buttons will work again "
+                    "afterwards."
+                )
+            else:
+                message = (
+                    "The printer is already running another job. Wait for it to "
+                    "finish, then press this again."
+                )
             if detail:
                 message = f"{message} The device says: {detail}"
             raise HPPrinterWriteError(message)
@@ -808,6 +835,51 @@ class CDPClient:
                 )
             )
         return self._writer
+
+    async def _job_is_stuck(self) -> bool:
+        """Is the report service holding a job the print engine has finished with?
+
+        Two documents, and the answer is in the disagreement between them:
+
+            GET /cdm/report/v1/print   {"state": "processing", ...}
+            GET /cdm/print/v2/status   {"printerState": "idle",
+                                         "printerIsAcceptingJobs": "true"}
+
+        A job that is genuinely running leaves the print engine busy, so the two
+        agreeing is the normal case. The pair above is what a job interrupted by
+        a jam or an improper shutdown looks like, and it is the case where
+        telling somebody to wait is worst: the job never ends, so the wait has
+        no end either.
+
+        Fails open. Every read here is best-effort -- the device drops
+        connections, and a diagnostic that raises inside an error message would
+        replace a useful refusal with a traceback. A refused check returns
+        False, so the worst case is the old wording, which is merely unhelpful
+        rather than wrong.
+        """
+        job = None
+        status = None
+        try:
+            job = await self._fetch_optional(CDP_REPORT_PRINT)
+            if not job or str(job.get("state", "")).lower() != "processing":
+                return False
+            status = await self._fetch_optional(CDP_PRINT_STATUS)
+        except Exception:  # noqa: BLE001 - a diagnostic must not raise
+            # _fetch_optional already turns a device failure into None, but
+            # this runs while an error is being built and an exception escaping
+            # here would replace a usable message with a traceback.
+            return False
+        if not status:
+            return False
+        engine = str(status.get("printerState", "")).lower()
+        # `idle` and `ready` are the two spellings the print service uses; both
+        # mean the engine is not working on anything.
+        if engine not in ("idle", "ready"):
+            return False
+        # And the device says outright that it will take more work, which is not
+        # something a machine finishing a job would say.
+        accepting = str(status.get("printerIsAcceptingJobs", "")).lower()
+        return accepting in ("true", "1", "yes")
 
     async def _confirm_after_timeout(
         self, endpoint: str, job_endpoint: str, err: Exception
