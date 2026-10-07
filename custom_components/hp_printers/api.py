@@ -42,6 +42,7 @@ from .const import (
     ENDPOINT_PRODUCT_STATUS,
     ENDPOINT_PRODUCT_USAGE,
     ENDPOINT_SHOP_FOR_SUPPLIES,
+    MAX_CONCURRENT_READS,
     NS_CALIBRATION,
     STATUS_OPTIONS,
 )
@@ -246,6 +247,10 @@ class LEDMClient:
         # a request without one -- the opposite arrangement to CDP, where the
         # write is the unauthenticated one and sending a password breaks it.
         self._password = password or ""
+        # Same gate as the CDP client, and for the same reason. See
+        # MAX_CONCURRENT_READS: on this protocol it costs nothing, because the
+        # device answers everything at width sixteen -- just three times slower.
+        self._read_gate = asyncio.Semaphore(MAX_CONCURRENT_READS)
 
     @property
     def host(self) -> str:
@@ -259,12 +264,23 @@ class LEDMClient:
         return f"{scheme}://{self._host}:{self._port}"
 
     async def _fetch(self, endpoint: str) -> Element:
-        """GET one LEDM document and return its namespace-stripped root."""
+        """GET one LEDM document and return its namespace-stripped root.
+
+        Every read on this client goes through the gate. The 750 answers
+        sixteen at once without losing any, but it takes 3.81s to do it that
+        way against 1.19s at three -- the requests queue inside the device
+        rather than failing -- so this is a speed-up here and the difference
+        between a refresh and a broken one on the models that are less
+        tolerant. See MAX_CONCURRENT_READS for both curves.
+        """
         url = f"{self.base_url}{endpoint}"
         try:
-            async with self._session.get(
-                url, timeout=REQUEST_TIMEOUT, ssl=self._ssl_context
-            ) as response:
+            async with (
+                self._read_gate,
+                self._session.get(
+                    url, timeout=REQUEST_TIMEOUT, ssl=self._ssl_context
+                ) as response,
+            ):
                 if response.status == 404:
                     # Checked before raise_for_status: aiohttp folds this into
                     # ClientResponseError, which is a ClientError, and the
