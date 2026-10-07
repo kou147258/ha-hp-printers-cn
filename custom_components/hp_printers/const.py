@@ -134,6 +134,38 @@ CDP_PROXY_CONFIG: Final = "/cdm/network/v1/proxyConfig"
 CDP_SLOW_RETRY_DELAY_SECONDS: Final = 2.0
 
 
+# How many reads may be in flight at once.
+#
+# Measured on the two printers this integration has been run against, by
+# replaying a refresh at each width three times over the 26 endpoints a
+# refresh reads. The 580-590 has two answers, and the difference between them
+# is the whole reason this number is two and not three:
+#
+#   width    freshly restarted        after a few minutes of polling
+#      1      78/78   1.58s             78/78   1.58s
+#      2      78/78   0.93s             78/78   0.93s
+#      3      78/78   1.16s             54/78   0.68s
+#      4      60/78   0.57s             42/78   0.89s
+#      8      33/78   0.35s             24/78   0.37s
+#     16      18/78   0.89s             12/78   0.21s
+#
+# Two at a time is answered in full in *both* states. Three is answered in
+# full only when the printer has just booted, which is not a condition worth
+# depending on: the coordinator runs every sixty seconds, so the device is in
+# the degraded column almost always.
+#
+# The device degrades with sustained load and recovers on a restart. That is
+# why the width matters more than the interval: sixteen concurrent reads lose
+# 88% of a refresh, and _fetch_optional turns a failure into an empty document
+# so that one absent endpoint cannot take a refresh down -- which is right, and
+# also means a refresh that answered twelve of twenty-six reports success.
+#
+# It is also what the maintenance buttons were running into. A press makes one
+# request while up to sixteen reads are in flight, and a device that far past
+# its limit answers the odd one out with a refusal.
+MAX_CONCURRENT_READS: Final = 2
+
+
 # --- Write timing, measured on the Smart Tank 580-590 -----------------------
 #
 # A read and a write are not the same kind of request, and giving a write the
