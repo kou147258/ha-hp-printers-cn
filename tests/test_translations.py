@@ -59,8 +59,16 @@ CJK = re.compile(r"[一-鿿]")
 # convention to break, and a Chinese interface reading 页 is what the reader
 # asked for. Home Assistant takes the unit from en.json whichever language the
 # interface is in, so these live in every file, including the English one.
+#
+# This set has changed once, and the change is recorded here because a test that
+# quietly changes its own beliefs is how the previous version ends up forbidding
+# something the interface now needs. `滴` joined it for the three ink-drop
+# counters: HP reports `OOISensorFiredDropsCount` and its two siblings, a droplet
+# is a discrete thing counted like any other, and those sensors were rendering a
+# bare 448340908 with nothing to say what it counted. The line is unchanged --
+# a count noun may be localised, a unit of measurement may not.
 MEASUREMENTS = frozenset({"%", "kB", "mL"})
-COUNT_NOUNS = frozenset({"页", "包", "次", "条", "支", "份", "个"})
+COUNT_NOUNS = frozenset({"页", "包", "次", "条", "支", "份", "个", "滴"})
 
 
 def _flatten(tree: dict, prefix: str = "") -> dict[str, str]:
@@ -487,6 +495,18 @@ def test_translation_declares_a_unit_for_every_counter() -> None:
         "last_event_page",
         "cartridge_pages_remaining",
         "cartridge_pages_printed",
+        # Added after an audit of the live instance: every one of these counts
+        # pages, and each sat beside a counter that already declared 页. They
+        # were absent from this set, so this test agreed with itself and stayed
+        # green on sixteen bare numbers -- an exact-set check cannot catch a key
+        # that is missing from the set it is compared against.
+        "normal_quality_pages",
+        "better_quality_pages",
+        "draft_quality_pages",
+        "photo_quality_pages",
+        "cloud_printed_pages",
+        "subscription_printed_pages",
+        "scan_to_host_images",
     }
     packet_counters = {
         "network_bad_packets",
@@ -501,6 +521,9 @@ def test_translation_declares_a_unit_for_every_counter() -> None:
         "cartridge_level",
         "cartridge_raw_level",
         "cartridge_low_threshold",
+        # IPP states `percent` for this one, so it is a unit of measurement and
+        # keeps the symbol in every language like the two above.
+        "paper_level",
     }
     # A counter of consumed ink. Listed separately because it is neither a
     # page count, a packet count nor a percentage, and the test below exists
@@ -539,6 +562,32 @@ def test_translation_declares_a_unit_for_every_counter() -> None:
         # than a rounded SI prefix it never used.
         "memory_available",
         "memory_total",
+        # Same audit. "面板取消次数" read as a bare 293, which could be pages,
+        # presses or anything else the machine felt like counting.
+        "panel_button_presses",
+        "panel_cancel_presses",
+        "non_hp_flag_count",
+        "power_cycles",
+        "network_errors",
+        # Refill counts per cartridge. These two slipped through the first pass
+        # at this because the description's `key` is "genuine_refills" while the
+        # translation is filed under "cartridge_genuine_refills"; looking the
+        # unit up by key found nothing and concluded nothing needed one.
+        "cartridge_genuine_refills",
+        "cartridge_counterfeit_refills",
+        # `failed_attempts_remaining` has said 次 since it was added; this one
+        # counts the same events and had nothing. Both are off by default, which
+        # is how a bare number survives: nothing renders it until somebody
+        # switches it on.
+        "successful_attempts_remaining",
+        "printhead_service_drops",
+        # Ink droplets. A discrete counted thing like a page, with its own
+        # noun; HP reports them as MarkingAgentCount with an "HPDropsCount"
+        # type and publishes no unit, so 滴 is a count noun invented here for
+        # the same reason 页 is.
+        "printhead_hp_drops",
+        "printhead_non_hp_drops",
+        "printhead_ooi_drops",
     }
     expected = (
         page_counters

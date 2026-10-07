@@ -199,7 +199,8 @@
         "name": "自动关机延时"
       },
       "better_quality_pages": {
-        "name": "较高质量页数（全纸材合计）"
+        "name": "较高质量页数（全纸材合计）",
+        "unit_of_measurement": "页"
       },
       "calibration_result": {
         "name": "上次打印头校准结果"
@@ -211,10 +212,12 @@
         "name": "品牌"
       },
       "cartridge_counterfeit_refills": {
-        "name": "未认证补充次数"
+        "name": "未认证补充次数",
+        "unit_of_measurement": "次"
       },
       "cartridge_genuine_refills": {
-        "name": "已认证补充次数"
+        "name": "已认证补充次数",
+        "unit_of_measurement": "次"
       },
       "cartridge_installed_at": {
         "name": "安装日期"
@@ -284,7 +287,8 @@
         "unit_of_measurement": "页"
       },
       "draft_quality_pages": {
-        "name": "草稿质量页数（全纸材合计）"
+        "name": "草稿质量页数（全纸材合计）",
+        "unit_of_measurement": "页"
       },
       "firmware_date": {
         "name": "固件日期"
@@ -319,7 +323,8 @@
         "unit_of_measurement": "包"
       },
       "network_errors": {
-        "name": "网络错误数"
+        "name": "网络错误数",
+        "unit_of_measurement": "次"
       },
       "network_framing_errors": {
         "name": "帧错误数",
@@ -349,25 +354,32 @@
         "unit_of_measurement": "包"
       },
       "non_hp_flag_count": {
-        "name": "未认证墨盒出现次数"
+        "name": "未认证墨盒出现次数",
+        "unit_of_measurement": "次"
       },
       "normal_quality_pages": {
-        "name": "普通质量页数（全纸材合计）"
+        "name": "普通质量页数（全纸材合计）",
+        "unit_of_measurement": "页"
       },
       "panel_button_presses": {
-        "name": "面板按键次数"
+        "name": "面板按键次数",
+        "unit_of_measurement": "次"
       },
       "panel_cancel_presses": {
-        "name": "面板取消次数"
+        "name": "面板取消次数",
+        "unit_of_measurement": "次"
       },
       "paper_level": {
-        "name": "纸张"
+        "name": "纸张",
+        "unit_of_measurement": "%"
       },
       "photo_quality_pages": {
-        "name": "照片页数"
+        "name": "照片页数",
+        "unit_of_measurement": "页"
       },
       "power_cycles": {
-        "name": "电源循环次数"
+        "name": "电源循环次数",
+        "unit_of_measurement": "次"
       },
       "power_save_timeout": {
         "name": "休眠超时时间"
@@ -423,7 +435,8 @@
         "unit_of_measurement": "页"
       },
       "scan_to_host_images": {
-        "name": "扫描到主机图像数"
+        "name": "扫描到主机图像数",
+        "unit_of_measurement": "页"
       },
       "scanner_adf_images": {
         "name": "自动进稿器扫描页数",
@@ -599,25 +612,32 @@
         "unit_of_measurement": "次"
       },
       "successful_attempts_remaining": {
-        "name": "网页管理登录剩余次数"
+        "name": "网页管理登录剩余次数",
+        "unit_of_measurement": "次"
       },
       "printhead_hp_drops": {
-        "name": "已喷墨滴数（HP 原装）"
+        "name": "已喷墨滴数（HP 原装）",
+        "unit_of_measurement": "滴"
       },
       "printhead_non_hp_drops": {
-        "name": "已喷墨滴数（未被识别为 HP）"
+        "name": "已喷墨滴数（未被识别为 HP）",
+        "unit_of_measurement": "滴"
       },
       "printhead_ooi_drops": {
-        "name": "缺墨保护触发次数"
+        "name": "缺墨保护触发期间的喷墨滴数",
+        "unit_of_measurement": "滴"
       },
       "printhead_service_drops": {
-        "name": "维修期间喷墨滴数"
+        "name": "维修期间喷墨滴数",
+        "unit_of_measurement": "滴"
       },
       "cloud_printed_pages": {
-        "name": "云打印页数"
+        "name": "云打印页数",
+        "unit_of_measurement": "页"
       },
       "subscription_printed_pages": {
-        "name": "订阅打印页数（即时墨）"
+        "name": "订阅打印页数（即时墨）",
+        "unit_of_measurement": "页"
       },
       "wifi_encryption": {
         "name": "无线加密方式"

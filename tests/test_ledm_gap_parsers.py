@@ -121,7 +121,7 @@ def test_ledm_reports_its_own_live_alerts() -> None:
 
     assert len(alerts) == 3
     assert {alert.category for alert in alerts} == {"genuineHP"}
-    assert all(alert.severity == "info" for alert in alerts)
+    assert all(alert.severity == "information" for alert in alerts)
     assert all(alert.priority == 400 for alert in alerts)
 
 
@@ -131,10 +131,16 @@ def test_the_ledm_severity_word_is_folded_onto_the_cdp_one() -> None:
     Left as "Info" the enum sensor would not match a declared option and the
     entity would refuse to be created on every LEDM printer, so the two
     protocols have to land on one spelling.
+
+    Folding the case is not enough: lowercasing gives ``info``, which is still
+    outside ``ALERT_SEVERITIES``. That is what this assertion used to check, and
+    it was green while the Smart Tank 750 showed its worst severity as
+    ``unknown`` -- the word the clamp substitutes for a severity it does not
+    recognise. The assertion below is the behaviour the docstring describes.
     """
     alerts = _parse_ledm_alerts(doc("ProductStatusDyn"))
 
-    assert alerts[0].severity == "info"
+    assert alerts[0].severity == "information"
 
 
 def test_an_unseen_severity_word_passes_through_rather_than_being_dropped() -> None:
@@ -147,7 +153,7 @@ def test_an_unseen_severity_word_passes_through_rather_than_being_dropped() -> N
     alerts = _parse_ledm_alerts(document)
     severities = {alert.severity for alert in alerts}
 
-    assert all(s in ("info", "warning", "error", "critical") for s in severities)
+    assert all(s in ("information", "warning", "error", "critical") for s in severities)
 
 
 # -------------------------------------------------------- product config

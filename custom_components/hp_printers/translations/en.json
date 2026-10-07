@@ -199,7 +199,8 @@
         "name": "Auto-off delay"
       },
       "better_quality_pages": {
-        "name": "Better quality pages (all media)"
+        "name": "Better quality pages (all media)",
+        "unit_of_measurement": "页"
       },
       "calibration_result": {
         "name": "Last printhead alignment"
@@ -211,10 +212,12 @@
         "name": "Brand"
       },
       "cartridge_counterfeit_refills": {
-        "name": "Unauthenticated refills"
+        "name": "Unauthenticated refills",
+        "unit_of_measurement": "次"
       },
       "cartridge_genuine_refills": {
-        "name": "Genuine refills"
+        "name": "Genuine refills",
+        "unit_of_measurement": "次"
       },
       "cartridge_installed_at": {
         "name": "Installed"
@@ -284,7 +287,8 @@
         "unit_of_measurement": "页"
       },
       "draft_quality_pages": {
-        "name": "Draft quality pages (all media)"
+        "name": "Draft quality pages (all media)",
+        "unit_of_measurement": "页"
       },
       "firmware_date": {
         "name": "Firmware date"
@@ -319,7 +323,8 @@
         "unit_of_measurement": "包"
       },
       "network_errors": {
-        "name": "Network errors"
+        "name": "Network errors",
+        "unit_of_measurement": "次"
       },
       "network_framing_errors": {
         "name": "Framing errors",
@@ -349,25 +354,32 @@
         "unit_of_measurement": "包"
       },
       "non_hp_flag_count": {
-        "name": "Unauthenticated cartridges seen"
+        "name": "Unauthenticated cartridges seen",
+        "unit_of_measurement": "次"
       },
       "normal_quality_pages": {
-        "name": "Normal quality pages (all media)"
+        "name": "Normal quality pages (all media)",
+        "unit_of_measurement": "页"
       },
       "panel_button_presses": {
-        "name": "Panel button presses"
+        "name": "Panel button presses",
+        "unit_of_measurement": "次"
       },
       "panel_cancel_presses": {
-        "name": "Panel cancels"
+        "name": "Panel cancels",
+        "unit_of_measurement": "次"
       },
       "paper_level": {
-        "name": "Paper"
+        "name": "Paper",
+        "unit_of_measurement": "%"
       },
       "photo_quality_pages": {
-        "name": "Photo pages"
+        "name": "Photo pages",
+        "unit_of_measurement": "页"
       },
       "power_cycles": {
-        "name": "Power cycles"
+        "name": "Power cycles",
+        "unit_of_measurement": "次"
       },
       "power_save_timeout": {
         "name": "Power save timeout"
@@ -423,7 +435,8 @@
         "unit_of_measurement": "页"
       },
       "scan_to_host_images": {
-        "name": "Images sent to host"
+        "name": "Images sent to host",
+        "unit_of_measurement": "页"
       },
       "scanner_adf_images": {
         "name": "Pages scanned from feeder",
@@ -599,25 +612,32 @@
         "unit_of_measurement": "次"
       },
       "successful_attempts_remaining": {
-        "name": "EWS sign-in attempts remaining"
+        "name": "EWS sign-in attempts remaining",
+        "unit_of_measurement": "次"
       },
       "printhead_hp_drops": {
-        "name": "Ink drops printed (genuine HP)"
+        "name": "Ink drops printed (genuine HP)",
+        "unit_of_measurement": "滴"
       },
       "printhead_non_hp_drops": {
-        "name": "Ink drops printed (not recognised as HP)"
+        "name": "Ink drops printed (not recognised as HP)",
+        "unit_of_measurement": "滴"
       },
       "printhead_ooi_drops": {
-        "name": "Out-of-ink protection firings"
+        "name": "Ink drops while out-of-ink protection was firing",
+        "unit_of_measurement": "滴"
       },
       "printhead_service_drops": {
-        "name": "Ink drops printed in service"
+        "name": "Ink drops printed in service",
+        "unit_of_measurement": "滴"
       },
       "cloud_printed_pages": {
-        "name": "Cloud-printed pages"
+        "name": "Cloud-printed pages",
+        "unit_of_measurement": "页"
       },
       "subscription_printed_pages": {
-        "name": "Subscription-printed pages (Instant Ink)"
+        "name": "Subscription-printed pages (Instant Ink)",
+        "unit_of_measurement": "页"
       },
       "wifi_encryption": {
         "name": "Wi-Fi encryption in use"

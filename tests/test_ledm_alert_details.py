@@ -116,8 +116,10 @@ def test_the_resource_uri_points_at_the_document_the_detail_lives_in() -> None:
 def test_the_severity_and_priority_still_read_as_before() -> None:
     """Regression: the nesting change must not have displaced the flat fields.
 
-    ``Info`` is LEDM's own word where CDP says ``information``; the fold to
-    lowercase is what lets one entity description serve both protocols.
+    ``Info`` is LEDM's own word where CDP says ``information``, and it is
+    *mapped*, not merely lowercased: ``info`` is outside
+    ``ALERT_SEVERITIES``, so a fold alone leaves the value one clamp away from
+    being displayed as ``unknown``.
     """
     alert = next(
         (a for a in _parse_ledm_alerts(_status_document()) if a.marker_color), None
@@ -125,7 +127,7 @@ def test_the_severity_and_priority_still_read_as_before() -> None:
 
     assert alert is not None
     assert alert.category == "genuineHP"
-    assert alert.severity == "info"
+    assert alert.severity == "information"
     assert alert.priority == 400
     assert alert.sequence is not None
 

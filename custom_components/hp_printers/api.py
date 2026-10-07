@@ -1156,15 +1156,48 @@ def as_diagnostics(data: Any) -> Any:
     return data
 
 
+#: LEDM spells the severities its own way; CDP uses the long forms that
+#: ``sensor.ALERT_SEVERITIES`` declares. Both protocols have to reach the entity
+#: layer under the same name, or the same physical condition shows as
+#: ``warning`` on one printer and as something the options do not list on the
+#: other.
+#:
+#: Measured on a Smart Tank 750: it reports ``<Severity>Info</Severity>``, and
+#: that single word was being lowercased to ``info`` -- a value outside the
+#: declared options. ``_enum`` then clamped it to ``unknown``, so the printer's
+#: own worst severity reached Home Assistant as "unknown" while the device was
+#: in fact raising three ``genuineHP`` consumable alerts. The clamp was right;
+#: the vocabulary underneath it was wrong.
+#:
+#: A word not listed here is passed through lowercased rather than dropped: an
+#: alert whose severity this module has not seen is still an alert, and
+#: discarding it would make the alert count wrong.
+LEDM_ALERT_SEVERITIES: dict[str, str] = {
+    "info": "information",
+    "information": "information",
+    "warning": "warning",
+    "error": "error",
+    "fatal": "critical",
+    "seriouserror": "critical",
+    "critical": "critical",
+}
+
+
+def _ledm_severity(value: str) -> str:
+    """Return LEDM's severity word in the vocabulary the sensors declare."""
+    return LEDM_ALERT_SEVERITIES.get(value.strip().lower(), value.strip().lower())
+
+
 def _parse_ledm_alerts(status_doc: Element | None) -> list[ActiveAlert]:
     """Build the alerts the device is raising right now.
 
     LEDM keeps them in an ``AlertTable``, one ``Alert`` per entry, and the
     vocabulary is its own: ``Info`` where CDP says ``information``. The case is
-    folded so the two protocols present the same state under the same name,
-    and a word this function has not seen before is passed through lowercased
-    rather than dropped -- an alert whose severity is unknown is still an
-    alert, and hiding it would make the count wrong.
+    folded *and the word mapped* so the two protocols present the same state
+    under the same name -- folding alone leaves ``info``, which is not in the
+    options the sensor declares, and a clamp then hides it. A word this
+    function has not seen before is passed through lowercased rather than
+    dropped.
     """
     if status_doc is None:
         return []
@@ -1187,7 +1220,7 @@ def _parse_ledm_alerts(status_doc: Element | None) -> list[ActiveAlert]:
         alerts.append(
             ActiveAlert(
                 category=category,
-                severity=severity.strip().lower() if severity else None,
+                severity=_ledm_severity(severity) if severity else None,
                 priority=_int(entry, "AlertPriority"),
                 sequence=_int(entry, "SequenceNumber"),
                 marker_color=_text(entry, "AlertDetails", "AlertDetailsMarkerColor"),
